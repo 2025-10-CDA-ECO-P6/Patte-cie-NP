@@ -1,8 +1,9 @@
-import express  from "express";
+import express from "express";
+import coreRoutes from "./core/routes";
 
+const app = express();
 
+app.use(express.json());
+app.use("/api", coreRoutes);
 
-const app = express()
-
-
-export default app
+export default app;
