@@ -6,27 +6,26 @@
 
 generator client {
   provider = "prisma-client"
-  output   = "./generated"
+  output   = "../generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
 }
 
-
 model Animal {
   // PK
   id String @id @default(uuid())
 
   // Columns
-  name String
-  birthDate DateTime
-  identification Int? @unique
+  name           String
+  birthDate      DateTime
+  identification Int?     @unique
 
   // Audite
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
   updatedAt DateTime?
-  isDeleted Boolean @default(false)
+  isDeleted Boolean   @default(false)
 
   // Relation
   animalOwners AnimalOwner[]
@@ -37,16 +36,16 @@ model Owner {
   id String @id @default(uuid())
 
   // Columns
-  firstName String
-  lastNamer String
-  email String @unique
-  adresse String
-  phoneNumber Int @unique
+  firstName   String
+  lastNamer   String
+  email       String @unique
+  adresse     String
+  phoneNumber Int    @unique
 
   // Audite
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
   updatedAt DateTime?
-  isDeleted Boolean @default(false)
+  isDeleted Boolean   @default(false)
 
   // Relation
   animalOwners AnimalOwner[]
@@ -58,38 +57,36 @@ model AnimalOwner {
 
   //FK
   animalId String
-  ownerId String
+  ownerId  String
 
   // Columns
   startDate DateTime
   endDate   DateTime?
 
   // Audite
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
   updatedAt DateTime?
-  isDeleted Boolean @default(false)
+  isDeleted Boolean   @default(false)
 
   // Relation
 
-  animal Animal @relation( fields: [animalId], references: [id])
-  owner Owner @relation( fields: [ownerId], references: [id])
-
+  animal Animal @relation(fields: [animalId], references: [id])
+  owner  Owner  @relation(fields: [ownerId], references: [id])
 }
 
 model Veterinarian {
-    id String @id @default(uuid())
-    first_name String
-    last_name String
-    email String @unique
-    phone String @unique
-    licenseNumber String @unique
+  id            String @id @default(uuid())
+  firstName     String
+  lastName      String
+  email         String @unique
+  phone         String @unique
+  licenseNumber String @unique
 
-    // Audite
+  // Audite
 
-    createdAt DateTime @default(now())
-    updatedAt DateTime?
-    isDeleted Boolean @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime?
+  isDeleted Boolean   @default(false)
 
-    // Relation
-
+  // Relation
 }
