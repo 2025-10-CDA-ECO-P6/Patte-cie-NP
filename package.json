@@ -22,16 +22,22 @@
   },
   "homepage": "https://github.com/2025-10-CDA-ECO-P6/Patte-cie-NP#readme",
   "dependencies": {
+    "@prisma/adapter-pg": "^7.1.0",
+    "@prisma/client": "^7.1.0",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
-    "nodemon": "^3.1.11"
+    "nodemon": "^3.1.11",
+    "pg": "^8.16.3"
   },
   "devDependencies": {
     "@commitlint/cli": "^20.2.0",
     "@commitlint/config-conventional": "^20.2.0",
     "@types/dotenv": "^6.1.1",
     "@types/express": "^5.0.6",
+    "@types/node": "^25.0.2",
+    "@types/pg": "^8.16.0",
     "husky": "^9.1.7",
+    "prisma": "^7.1.0",
     "typescript": "^5.9.3"
   }
 }
