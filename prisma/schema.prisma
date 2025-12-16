@@ -15,17 +15,63 @@ datasource db {
 
 
 model Animal {
-    id String @id @default(uuid())
-    name String
-    birthDate String
-    identification Int?
+  // PK
+  id String @id @default(uuid())
 
-    // Audite
+  // Columns
+  name String
+  birthDate DateTime
+  identification Int? @unique
 
-    createdAt DateTime @default(now())
-    updatedAt DateTime?
-    isDeleted Boolean @default(false)
+  // Audite
+  createdAt DateTime @default(now())
+  updatedAt DateTime?
+  isDeleted Boolean @default(false)
 
-    // Relation
+  // Relation
+  animalOwners AnimalOwner[]
+}
+
+model Owner {
+  // PK
+  id String @id @default(uuid())
+
+  // Columns
+  firstName String
+  lastNamer String
+  email String @unique
+  adresse String
+  phoneNumber Int @unique
+
+  // Audite
+  createdAt DateTime @default(now())
+  updatedAt DateTime?
+  isDeleted Boolean @default(false)
+
+  // Relation
+  animalOwners AnimalOwner[]
+}
+
+model AnimalOwner {
+  // PK
+  id String @id @default(uuid())
+
+  //FK
+  animalId String
+  ownerId String
+
+  // Columns
+  startDate DateTime
+  endDate   DateTime?
+
+  // Audite
+  createdAt DateTime @default(now())
+  updatedAt DateTime?
+  isDeleted Boolean @default(false)
+
+  // Relation
+
+  animal Animal @relation( fields: [animalId], references: [id])
+  owner Owner @relation( fields: [ownerId], references: [id])
 
 }
