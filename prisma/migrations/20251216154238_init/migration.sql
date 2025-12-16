@@ -1,19 +1,21 @@
-/*
-  Warnings:
+-- CreateTable
+CREATE TABLE "Animal" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "birthDate" TIMESTAMP(3) NOT NULL,
+    "identification" INTEGER,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3),
+    "isDeleted" BOOLEAN NOT NULL DEFAULT false,
 
-  - A unique constraint covering the columns `[identification]` on the table `Animal` will be added. If there are existing duplicate values, this will fail.
-  - Changed the type of `birthDate` on the `Animal` table. No cast exists, the column would be dropped and recreated, which cannot be done if there is data, since the column is required.
-
-*/
--- AlterTable
-ALTER TABLE "Animal" DROP COLUMN "birthDate",
-ADD COLUMN     "birthDate" TIMESTAMP(3) NOT NULL;
+    CONSTRAINT "Animal_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "Owner" (
     "id" TEXT NOT NULL,
     "firstName" TEXT NOT NULL,
-    "lastNamer" TEXT NOT NULL,
+    "lastName" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "adresse" TEXT NOT NULL,
     "phoneNumber" INTEGER NOT NULL,
@@ -38,6 +40,24 @@ CREATE TABLE "AnimalOwner" (
     CONSTRAINT "AnimalOwner_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "Veterinarian" (
+    "id" TEXT NOT NULL,
+    "first_name" TEXT NOT NULL,
+    "last_name" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "phone" TEXT NOT NULL,
+    "licenseNumber" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3),
+    "isDeleted" BOOLEAN NOT NULL DEFAULT false,
+
+    CONSTRAINT "Veterinarian_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Animal_identification_key" ON "Animal"("identification");
+
 -- CreateIndex
 CREATE UNIQUE INDEX "Owner_email_key" ON "Owner"("email");
 
@@ -45,7 +65,13 @@ CREATE UNIQUE INDEX "Owner_email_key" ON "Owner"("email");
 CREATE UNIQUE INDEX "Owner_phoneNumber_key" ON "Owner"("phoneNumber");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Animal_identification_key" ON "Animal"("identification");
+CREATE UNIQUE INDEX "Veterinarian_email_key" ON "Veterinarian"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Veterinarian_phone_key" ON "Veterinarian"("phone");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Veterinarian_licenseNumber_key" ON "Veterinarian"("licenseNumber");
 
 -- AddForeignKey
 ALTER TABLE "AnimalOwner" ADD CONSTRAINT "AnimalOwner_animalId_fkey" FOREIGN KEY ("animalId") REFERENCES "Animal"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
