@@ -37,7 +37,7 @@ model Owner {
 
   // Columns
   firstName   String
-  lastNamer   String
+  lastName    String
   email       String @unique
   adresse     String
   phoneNumber Int    @unique
