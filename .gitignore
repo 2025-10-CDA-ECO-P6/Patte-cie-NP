@@ -129,3 +129,7 @@ build
 .strapi-updater.json
 .strapi-cloud.json
 /generated/prisma
+
+/generated/prisma
+
+/generated/prisma

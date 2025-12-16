@@ -6,7 +6,7 @@
 
 generator client {
   provider = "prisma-client"
-  output   = "./generated"
+  output   = "../generated/prisma"
 }
 
 datasource db {
@@ -38,7 +38,7 @@ model Owner {
 
   // Columns
   firstName String
-  lastNamer String
+  lastName String
   email String @unique
   adresse String
   phoneNumber Int @unique
