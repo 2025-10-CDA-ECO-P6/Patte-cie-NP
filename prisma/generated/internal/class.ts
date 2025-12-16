@@ -20,7 +20,7 @@ const config: runtime.GetPrismaClientConfig = {
   "clientVersion": "7.1.0",
   "engineVersion": "ab635e6b9d606fa5c8fb8b1a7f909c3c3c1c98ba",
   "activeProvider": "postgresql",
-  "inlineSchema": "// This is your Prisma schema file,\n// learn more about it in the docs: https://pris.ly/d/prisma-schema\n\n// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?\n// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init\n\ngenerator client {\n  provider = \"prisma-client\"\n  output   = \"./generated\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n}\n\nmodel Animal {\n  // PK\n  id String @id @default(uuid())\n\n  // Columns\n  name           String\n  birthDate      DateTime\n  identification Int?     @unique\n\n  // Audite\n  createdAt DateTime  @default(now())\n  updatedAt DateTime?\n  isDeleted Boolean   @default(false)\n\n  // Relation\n  animalOwners AnimalOwner[]\n}\n\nmodel Owner {\n  // PK\n  id String @id @default(uuid())\n\n  // Columns\n  firstName   String\n  lastNamer   String\n  email       String @unique\n  adresse     String\n  phoneNumber Int    @unique\n\n  // Audite\n  createdAt DateTime  @default(now())\n  updatedAt DateTime?\n  isDeleted Boolean   @default(false)\n\n  // Relation\n  animalOwners AnimalOwner[]\n}\n\nmodel AnimalOwner {\n  // PK\n  id String @id @default(uuid())\n\n  //FK\n  animalId String\n  ownerId  String\n\n  // Columns\n  startDate DateTime\n  endDate   DateTime?\n\n  // Audite\n  createdAt DateTime  @default(now())\n  updatedAt DateTime?\n  isDeleted Boolean   @default(false)\n\n  // Relation\n\n  animal Animal @relation(fields: [animalId], references: [id])\n  owner  Owner  @relation(fields: [ownerId], references: [id])\n}\n",
+  "inlineSchema": "// This is your Prisma schema file,\n// learn more about it in the docs: https://pris.ly/d/prisma-schema\n\n// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?\n// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init\n\ngenerator client {\n  provider = \"prisma-client\"\n  output   = \"./generated\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n}\n\nmodel Animal {\n  id             String @id @default(uuid())\n  name           String\n  birthDate      String\n  identification Int?\n\n  // Audite\n\n  createdAt DateTime  @default(now())\n  updatedAt DateTime?\n  isDeleted Boolean   @default(false)\n\n  // Relation\n}\n\nmodel Veterinarian {\n  id            String @id @default(uuid())\n  first_name    String\n  last_name     String\n  email         String @unique\n  phone         String @unique\n  licenseNumber String @unique\n\n  // Audite\n\n  createdAt DateTime  @default(now())\n  updatedAt DateTime?\n  isDeleted Boolean   @default(false)\n\n  // Relation\n}\n",
   "runtimeDataModel": {
     "models": {},
     "enums": {},
@@ -28,7 +28,7 @@ const config: runtime.GetPrismaClientConfig = {
   }
 }
 
-config.runtimeDataModel = JSON.parse("{\"models\":{\"Animal\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"birthDate\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"identification\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"isDeleted\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"animalOwners\",\"kind\":\"object\",\"type\":\"AnimalOwner\",\"relationName\":\"AnimalToAnimalOwner\"}],\"dbName\":null},\"Owner\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"firstName\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"lastNamer\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"email\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"adresse\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"phoneNumber\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"isDeleted\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"animalOwners\",\"kind\":\"object\",\"type\":\"AnimalOwner\",\"relationName\":\"AnimalOwnerToOwner\"}],\"dbName\":null},\"AnimalOwner\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"animalId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"ownerId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"startDate\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"endDate\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"isDeleted\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"animal\",\"kind\":\"object\",\"type\":\"Animal\",\"relationName\":\"AnimalToAnimalOwner\"},{\"name\":\"owner\",\"kind\":\"object\",\"type\":\"Owner\",\"relationName\":\"AnimalOwnerToOwner\"}],\"dbName\":null}},\"enums\":{},\"types\":{}}")
+config.runtimeDataModel = JSON.parse("{\"models\":{\"Animal\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"birthDate\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"identification\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"isDeleted\",\"kind\":\"scalar\",\"type\":\"Boolean\"}],\"dbName\":null},\"Veterinarian\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"first_name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"last_name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"email\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"phone\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"licenseNumber\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"isDeleted\",\"kind\":\"scalar\",\"type\":\"Boolean\"}],\"dbName\":null}},\"enums\":{},\"types\":{}}")
 
 async function decodeBase64AsWasm(wasmBase64: string): Promise<WebAssembly.Module> {
   const { Buffer } = await import('node:buffer')
@@ -185,24 +185,14 @@ export interface PrismaClient<
   get animal(): Prisma.AnimalDelegate<ExtArgs, { omit: OmitOpts }>;
 
   /**
-   * `prisma.owner`: Exposes CRUD operations for the **Owner** model.
+   * `prisma.veterinarian`: Exposes CRUD operations for the **Veterinarian** model.
     * Example usage:
     * ```ts
-    * // Fetch zero or more Owners
-    * const owners = await prisma.owner.findMany()
+    * // Fetch zero or more Veterinarians
+    * const veterinarians = await prisma.veterinarian.findMany()
     * ```
     */
-  get owner(): Prisma.OwnerDelegate<ExtArgs, { omit: OmitOpts }>;
-
-  /**
-   * `prisma.animalOwner`: Exposes CRUD operations for the **AnimalOwner** model.
-    * Example usage:
-    * ```ts
-    * // Fetch zero or more AnimalOwners
-    * const animalOwners = await prisma.animalOwner.findMany()
-    * ```
-    */
-  get animalOwner(): Prisma.AnimalOwnerDelegate<ExtArgs, { omit: OmitOpts }>;
+  get veterinarian(): Prisma.VeterinarianDelegate<ExtArgs, { omit: OmitOpts }>;
 }
 
 export function getPrismaClientClass(): PrismaClientConstructor {

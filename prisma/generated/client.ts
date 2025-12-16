@@ -43,12 +43,7 @@ export { Prisma }
  */
 export type Animal = Prisma.AnimalModel
 /**
- * Model Owner
+ * Model Veterinarian
  * 
  */
-export type Owner = Prisma.OwnerModel
-/**
- * Model AnimalOwner
- * 
- */
-export type AnimalOwner = Prisma.AnimalOwnerModel
+export type Veterinarian = Prisma.VeterinarianModel

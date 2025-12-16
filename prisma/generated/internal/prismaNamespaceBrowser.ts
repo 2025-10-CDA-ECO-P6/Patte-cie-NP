@@ -52,8 +52,7 @@ export const AnyNull = runtime.AnyNull
 
 export const ModelName = {
   Animal: 'Animal',
-  Owner: 'Owner',
-  AnimalOwner: 'AnimalOwner'
+  Veterinarian: 'Veterinarian'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -85,33 +84,19 @@ export const AnimalScalarFieldEnum = {
 export type AnimalScalarFieldEnum = (typeof AnimalScalarFieldEnum)[keyof typeof AnimalScalarFieldEnum]
 
 
-export const OwnerScalarFieldEnum = {
+export const VeterinarianScalarFieldEnum = {
   id: 'id',
-  firstName: 'firstName',
-  lastNamer: 'lastNamer',
+  first_name: 'first_name',
+  last_name: 'last_name',
   email: 'email',
-  adresse: 'adresse',
-  phoneNumber: 'phoneNumber',
+  phone: 'phone',
+  licenseNumber: 'licenseNumber',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   isDeleted: 'isDeleted'
 } as const
 
-export type OwnerScalarFieldEnum = (typeof OwnerScalarFieldEnum)[keyof typeof OwnerScalarFieldEnum]
-
-
-export const AnimalOwnerScalarFieldEnum = {
-  id: 'id',
-  animalId: 'animalId',
-  ownerId: 'ownerId',
-  startDate: 'startDate',
-  endDate: 'endDate',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt',
-  isDeleted: 'isDeleted'
-} as const
-
-export type AnimalOwnerScalarFieldEnum = (typeof AnimalOwnerScalarFieldEnum)[keyof typeof AnimalOwnerScalarFieldEnum]
+export type VeterinarianScalarFieldEnum = (typeof VeterinarianScalarFieldEnum)[keyof typeof VeterinarianScalarFieldEnum]
 
 
 export const SortOrder = {
