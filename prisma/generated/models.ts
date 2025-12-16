@@ -9,5 +9,7 @@
  * 🟢 You can import this file directly.
  */
 export type * from './models/Animal'
+export type * from './models/Owner'
+export type * from './models/AnimalOwner'
 export type * from './models/Veterinarian'
 export type * from './commonInputTypes'
