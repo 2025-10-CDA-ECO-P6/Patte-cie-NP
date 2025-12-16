@@ -1,20 +1,34 @@
 export abstract class BaseEntity {
-  id: String;
+  public readonly id: string;
 
-  constructor(id: string) {
+  protected constructor(id: string) {
     this.id = id;
   }
 }
 
 export abstract class AuditedBaseEntity extends BaseEntity {
-  createdAt: Date;
-  updatedAt: Date;
-  isDeleted: Boolean;
+  public readonly createdAt: Date;
+  protected updatedAt?: Date;
+  protected isDeleted: boolean;
 
-  constructor(id: string, createdAt: Date, updatedAt: Date, isdeleted: Boolean) {
+  protected constructor(id: string, createdAt: Date, updatedAt?: Date, isDeleted = false) {
     super(id);
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
-    this.isDeleted = isdeleted;
+    this.isDeleted = isDeleted;
+  }
+
+  markAsDeleted(): void {
+    if (this.isDeleted) return;
+    this.isDeleted = true;
+    this.touch();
+  }
+
+  protected touch(): void {
+    this.updatedAt = new Date();
+  }
+
+  get deleted(): boolean {
+    return this.isDeleted;
   }
 }

@@ -52,6 +52,8 @@ export const AnyNull = runtime.AnyNull
 
 export const ModelName = {
   Animal: 'Animal',
+  Owner: 'Owner',
+  AnimalOwner: 'AnimalOwner',
   Veterinarian: 'Veterinarian'
 } as const
 
@@ -82,6 +84,35 @@ export const AnimalScalarFieldEnum = {
 } as const
 
 export type AnimalScalarFieldEnum = (typeof AnimalScalarFieldEnum)[keyof typeof AnimalScalarFieldEnum]
+
+
+export const OwnerScalarFieldEnum = {
+  id: 'id',
+  firstName: 'firstName',
+  lastNamer: 'lastNamer',
+  email: 'email',
+  adresse: 'adresse',
+  phoneNumber: 'phoneNumber',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  isDeleted: 'isDeleted'
+} as const
+
+export type OwnerScalarFieldEnum = (typeof OwnerScalarFieldEnum)[keyof typeof OwnerScalarFieldEnum]
+
+
+export const AnimalOwnerScalarFieldEnum = {
+  id: 'id',
+  animalId: 'animalId',
+  ownerId: 'ownerId',
+  startDate: 'startDate',
+  endDate: 'endDate',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  isDeleted: 'isDeleted'
+} as const
+
+export type AnimalOwnerScalarFieldEnum = (typeof AnimalOwnerScalarFieldEnum)[keyof typeof AnimalOwnerScalarFieldEnum]
 
 
 export const VeterinarianScalarFieldEnum = {

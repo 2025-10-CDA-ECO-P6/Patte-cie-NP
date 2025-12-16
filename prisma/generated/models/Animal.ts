@@ -37,7 +37,7 @@ export type AnimalSumAggregateOutputType = {
 export type AnimalMinAggregateOutputType = {
   id: string | null
   name: string | null
-  birthDate: string | null
+  birthDate: Date | null
   identification: number | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -47,7 +47,7 @@ export type AnimalMinAggregateOutputType = {
 export type AnimalMaxAggregateOutputType = {
   id: string | null
   name: string | null
-  birthDate: string | null
+  birthDate: Date | null
   identification: number | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -194,7 +194,7 @@ export type AnimalGroupByArgs<ExtArgs extends runtime.Types.Extensions.InternalA
 export type AnimalGroupByOutputType = {
   id: string
   name: string
-  birthDate: string
+  birthDate: Date
   identification: number | null
   createdAt: Date
   updatedAt: Date | null
@@ -227,11 +227,12 @@ export type AnimalWhereInput = {
   NOT?: Prisma.AnimalWhereInput | Prisma.AnimalWhereInput[]
   id?: Prisma.StringFilter<"Animal"> | string
   name?: Prisma.StringFilter<"Animal"> | string
-  birthDate?: Prisma.StringFilter<"Animal"> | string
+  birthDate?: Prisma.DateTimeFilter<"Animal"> | Date | string
   identification?: Prisma.IntNullableFilter<"Animal"> | number | null
   createdAt?: Prisma.DateTimeFilter<"Animal"> | Date | string
   updatedAt?: Prisma.DateTimeNullableFilter<"Animal"> | Date | string | null
   isDeleted?: Prisma.BoolFilter<"Animal"> | boolean
+  animalOwners?: Prisma.AnimalOwnerListRelationFilter
 }
 
 export type AnimalOrderByWithRelationInput = {
@@ -242,20 +243,22 @@ export type AnimalOrderByWithRelationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   isDeleted?: Prisma.SortOrder
+  animalOwners?: Prisma.AnimalOwnerOrderByRelationAggregateInput
 }
 
 export type AnimalWhereUniqueInput = Prisma.AtLeast<{
   id?: string
+  identification?: number
   AND?: Prisma.AnimalWhereInput | Prisma.AnimalWhereInput[]
   OR?: Prisma.AnimalWhereInput[]
   NOT?: Prisma.AnimalWhereInput | Prisma.AnimalWhereInput[]
   name?: Prisma.StringFilter<"Animal"> | string
-  birthDate?: Prisma.StringFilter<"Animal"> | string
-  identification?: Prisma.IntNullableFilter<"Animal"> | number | null
+  birthDate?: Prisma.DateTimeFilter<"Animal"> | Date | string
   createdAt?: Prisma.DateTimeFilter<"Animal"> | Date | string
   updatedAt?: Prisma.DateTimeNullableFilter<"Animal"> | Date | string | null
   isDeleted?: Prisma.BoolFilter<"Animal"> | boolean
-}, "id">
+  animalOwners?: Prisma.AnimalOwnerListRelationFilter
+}, "id" | "identification">
 
 export type AnimalOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -278,7 +281,7 @@ export type AnimalScalarWhereWithAggregatesInput = {
   NOT?: Prisma.AnimalScalarWhereWithAggregatesInput | Prisma.AnimalScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"Animal"> | string
   name?: Prisma.StringWithAggregatesFilter<"Animal"> | string
-  birthDate?: Prisma.StringWithAggregatesFilter<"Animal"> | string
+  birthDate?: Prisma.DateTimeWithAggregatesFilter<"Animal"> | Date | string
   identification?: Prisma.IntNullableWithAggregatesFilter<"Animal"> | number | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Animal"> | Date | string
   updatedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Animal"> | Date | string | null
@@ -288,47 +291,51 @@ export type AnimalScalarWhereWithAggregatesInput = {
 export type AnimalCreateInput = {
   id?: string
   name: string
-  birthDate: string
+  birthDate: Date | string
   identification?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string | null
   isDeleted?: boolean
+  animalOwners?: Prisma.AnimalOwnerCreateNestedManyWithoutAnimalInput
 }
 
 export type AnimalUncheckedCreateInput = {
   id?: string
   name: string
-  birthDate: string
+  birthDate: Date | string
   identification?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string | null
   isDeleted?: boolean
+  animalOwners?: Prisma.AnimalOwnerUncheckedCreateNestedManyWithoutAnimalInput
 }
 
 export type AnimalUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
-  birthDate?: Prisma.StringFieldUpdateOperationsInput | string
+  birthDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   identification?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isDeleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  animalOwners?: Prisma.AnimalOwnerUpdateManyWithoutAnimalNestedInput
 }
 
 export type AnimalUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
-  birthDate?: Prisma.StringFieldUpdateOperationsInput | string
+  birthDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   identification?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isDeleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  animalOwners?: Prisma.AnimalOwnerUncheckedUpdateManyWithoutAnimalNestedInput
 }
 
 export type AnimalCreateManyInput = {
   id?: string
   name: string
-  birthDate: string
+  birthDate: Date | string
   identification?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string | null
@@ -338,7 +345,7 @@ export type AnimalCreateManyInput = {
 export type AnimalUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
-  birthDate?: Prisma.StringFieldUpdateOperationsInput | string
+  birthDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   identification?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -348,7 +355,7 @@ export type AnimalUpdateManyMutationInput = {
 export type AnimalUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
-  birthDate?: Prisma.StringFieldUpdateOperationsInput | string
+  birthDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   identification?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -393,8 +400,17 @@ export type AnimalSumOrderByAggregateInput = {
   identification?: Prisma.SortOrder
 }
 
+export type AnimalScalarRelationFilter = {
+  is?: Prisma.AnimalWhereInput
+  isNot?: Prisma.AnimalWhereInput
+}
+
 export type StringFieldUpdateOperationsInput = {
   set?: string
+}
+
+export type DateTimeFieldUpdateOperationsInput = {
+  set?: Date | string
 }
 
 export type NullableIntFieldUpdateOperationsInput = {
@@ -405,10 +421,6 @@ export type NullableIntFieldUpdateOperationsInput = {
   divide?: number
 }
 
-export type DateTimeFieldUpdateOperationsInput = {
-  set?: Date | string
-}
-
 export type NullableDateTimeFieldUpdateOperationsInput = {
   set?: Date | string | null
 }
@@ -417,6 +429,105 @@ export type BoolFieldUpdateOperationsInput = {
   set?: boolean
 }
 
+export type AnimalCreateNestedOneWithoutAnimalOwnersInput = {
+  create?: Prisma.XOR<Prisma.AnimalCreateWithoutAnimalOwnersInput, Prisma.AnimalUncheckedCreateWithoutAnimalOwnersInput>
+  connectOrCreate?: Prisma.AnimalCreateOrConnectWithoutAnimalOwnersInput
+  connect?: Prisma.AnimalWhereUniqueInput
+}
+
+export type AnimalUpdateOneRequiredWithoutAnimalOwnersNestedInput = {
+  create?: Prisma.XOR<Prisma.AnimalCreateWithoutAnimalOwnersInput, Prisma.AnimalUncheckedCreateWithoutAnimalOwnersInput>
+  connectOrCreate?: Prisma.AnimalCreateOrConnectWithoutAnimalOwnersInput
+  upsert?: Prisma.AnimalUpsertWithoutAnimalOwnersInput
+  connect?: Prisma.AnimalWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.AnimalUpdateToOneWithWhereWithoutAnimalOwnersInput, Prisma.AnimalUpdateWithoutAnimalOwnersInput>, Prisma.AnimalUncheckedUpdateWithoutAnimalOwnersInput>
+}
+
+export type AnimalCreateWithoutAnimalOwnersInput = {
+  id?: string
+  name: string
+  birthDate: Date | string
+  identification?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string | null
+  isDeleted?: boolean
+}
+
+export type AnimalUncheckedCreateWithoutAnimalOwnersInput = {
+  id?: string
+  name: string
+  birthDate: Date | string
+  identification?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string | null
+  isDeleted?: boolean
+}
+
+export type AnimalCreateOrConnectWithoutAnimalOwnersInput = {
+  where: Prisma.AnimalWhereUniqueInput
+  create: Prisma.XOR<Prisma.AnimalCreateWithoutAnimalOwnersInput, Prisma.AnimalUncheckedCreateWithoutAnimalOwnersInput>
+}
+
+export type AnimalUpsertWithoutAnimalOwnersInput = {
+  update: Prisma.XOR<Prisma.AnimalUpdateWithoutAnimalOwnersInput, Prisma.AnimalUncheckedUpdateWithoutAnimalOwnersInput>
+  create: Prisma.XOR<Prisma.AnimalCreateWithoutAnimalOwnersInput, Prisma.AnimalUncheckedCreateWithoutAnimalOwnersInput>
+  where?: Prisma.AnimalWhereInput
+}
+
+export type AnimalUpdateToOneWithWhereWithoutAnimalOwnersInput = {
+  where?: Prisma.AnimalWhereInput
+  data: Prisma.XOR<Prisma.AnimalUpdateWithoutAnimalOwnersInput, Prisma.AnimalUncheckedUpdateWithoutAnimalOwnersInput>
+}
+
+export type AnimalUpdateWithoutAnimalOwnersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  birthDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  identification?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  isDeleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+}
+
+export type AnimalUncheckedUpdateWithoutAnimalOwnersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  birthDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  identification?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  isDeleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+}
+
+
+/**
+ * Count Type AnimalCountOutputType
+ */
+
+export type AnimalCountOutputType = {
+  animalOwners: number
+}
+
+export type AnimalCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  animalOwners?: boolean | AnimalCountOutputTypeCountAnimalOwnersArgs
+}
+
+/**
+ * AnimalCountOutputType without action
+ */
+export type AnimalCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the AnimalCountOutputType
+   */
+  select?: Prisma.AnimalCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * AnimalCountOutputType without action
+ */
+export type AnimalCountOutputTypeCountAnimalOwnersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.AnimalOwnerWhereInput
+}
 
 
 export type AnimalSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -427,6 +538,8 @@ export type AnimalSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   createdAt?: boolean
   updatedAt?: boolean
   isDeleted?: boolean
+  animalOwners?: boolean | Prisma.Animal$animalOwnersArgs<ExtArgs>
+  _count?: boolean | Prisma.AnimalCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["animal"]>
 
 export type AnimalSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -460,14 +573,22 @@ export type AnimalSelectScalar = {
 }
 
 export type AnimalOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "birthDate" | "identification" | "createdAt" | "updatedAt" | "isDeleted", ExtArgs["result"]["animal"]>
+export type AnimalInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  animalOwners?: boolean | Prisma.Animal$animalOwnersArgs<ExtArgs>
+  _count?: boolean | Prisma.AnimalCountOutputTypeDefaultArgs<ExtArgs>
+}
+export type AnimalIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
+export type AnimalIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
 
 export type $AnimalPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Animal"
-  objects: {}
+  objects: {
+    animalOwners: Prisma.$AnimalOwnerPayload<ExtArgs>[]
+  }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     name: string
-    birthDate: string
+    birthDate: Date
     identification: number | null
     createdAt: Date
     updatedAt: Date | null
@@ -866,6 +987,7 @@ readonly fields: AnimalFieldRefs;
  */
 export interface Prisma__AnimalClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  animalOwners<T extends Prisma.Animal$animalOwnersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Animal$animalOwnersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AnimalOwnerPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -897,7 +1019,7 @@ export interface Prisma__AnimalClient<T, Null = never, ExtArgs extends runtime.T
 export interface AnimalFieldRefs {
   readonly id: Prisma.FieldRef<"Animal", 'String'>
   readonly name: Prisma.FieldRef<"Animal", 'String'>
-  readonly birthDate: Prisma.FieldRef<"Animal", 'String'>
+  readonly birthDate: Prisma.FieldRef<"Animal", 'DateTime'>
   readonly identification: Prisma.FieldRef<"Animal", 'Int'>
   readonly createdAt: Prisma.FieldRef<"Animal", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Animal", 'DateTime'>
@@ -919,6 +1041,10 @@ export type AnimalFindUniqueArgs<ExtArgs extends runtime.Types.Extensions.Intern
    */
   omit?: Prisma.AnimalOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AnimalInclude<ExtArgs> | null
+  /**
    * Filter, which Animal to fetch.
    */
   where: Prisma.AnimalWhereUniqueInput
@@ -937,6 +1063,10 @@ export type AnimalFindUniqueOrThrowArgs<ExtArgs extends runtime.Types.Extensions
    */
   omit?: Prisma.AnimalOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AnimalInclude<ExtArgs> | null
+  /**
    * Filter, which Animal to fetch.
    */
   where: Prisma.AnimalWhereUniqueInput
@@ -954,6 +1084,10 @@ export type AnimalFindFirstArgs<ExtArgs extends runtime.Types.Extensions.Interna
    * Omit specific fields from the Animal
    */
   omit?: Prisma.AnimalOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AnimalInclude<ExtArgs> | null
   /**
    * Filter, which Animal to fetch.
    */
@@ -1003,6 +1137,10 @@ export type AnimalFindFirstOrThrowArgs<ExtArgs extends runtime.Types.Extensions.
    */
   omit?: Prisma.AnimalOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AnimalInclude<ExtArgs> | null
+  /**
    * Filter, which Animal to fetch.
    */
   where?: Prisma.AnimalWhereInput
@@ -1051,6 +1189,10 @@ export type AnimalFindManyArgs<ExtArgs extends runtime.Types.Extensions.Internal
    */
   omit?: Prisma.AnimalOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AnimalInclude<ExtArgs> | null
+  /**
    * Filter, which Animals to fetch.
    */
   where?: Prisma.AnimalWhereInput
@@ -1093,6 +1235,10 @@ export type AnimalCreateArgs<ExtArgs extends runtime.Types.Extensions.InternalAr
    * Omit specific fields from the Animal
    */
   omit?: Prisma.AnimalOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AnimalInclude<ExtArgs> | null
   /**
    * The data needed to create a Animal.
    */
@@ -1141,6 +1287,10 @@ export type AnimalUpdateArgs<ExtArgs extends runtime.Types.Extensions.InternalAr
    * Omit specific fields from the Animal
    */
   omit?: Prisma.AnimalOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AnimalInclude<ExtArgs> | null
   /**
    * The data needed to update a Animal.
    */
@@ -1208,6 +1358,10 @@ export type AnimalUpsertArgs<ExtArgs extends runtime.Types.Extensions.InternalAr
    */
   omit?: Prisma.AnimalOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AnimalInclude<ExtArgs> | null
+  /**
    * The filter to search for the Animal to update in case it exists.
    */
   where: Prisma.AnimalWhereUniqueInput
@@ -1234,6 +1388,10 @@ export type AnimalDeleteArgs<ExtArgs extends runtime.Types.Extensions.InternalAr
    */
   omit?: Prisma.AnimalOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AnimalInclude<ExtArgs> | null
+  /**
    * Filter which Animal to delete.
    */
   where: Prisma.AnimalWhereUniqueInput
@@ -1254,6 +1412,30 @@ export type AnimalDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Intern
 }
 
 /**
+ * Animal.animalOwners
+ */
+export type Animal$animalOwnersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the AnimalOwner
+   */
+  select?: Prisma.AnimalOwnerSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the AnimalOwner
+   */
+  omit?: Prisma.AnimalOwnerOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AnimalOwnerInclude<ExtArgs> | null
+  where?: Prisma.AnimalOwnerWhereInput
+  orderBy?: Prisma.AnimalOwnerOrderByWithRelationInput | Prisma.AnimalOwnerOrderByWithRelationInput[]
+  cursor?: Prisma.AnimalOwnerWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.AnimalOwnerScalarFieldEnum | Prisma.AnimalOwnerScalarFieldEnum[]
+}
+
+/**
  * Animal without action
  */
 export type AnimalDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1265,4 +1447,8 @@ export type AnimalDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalA
    * Omit specific fields from the Animal
    */
   omit?: Prisma.AnimalOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AnimalInclude<ExtArgs> | null
 }
