@@ -86,4 +86,5 @@ const toDomainVeterinarian = (
         record.createdAt,
         record.updatedAt ?? undefined,
         record.isDeleted
+
     );
