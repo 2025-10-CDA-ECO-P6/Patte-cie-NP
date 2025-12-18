@@ -1,12 +1,10 @@
 import { AuditedBaseEntity } from "../../../core/bases/BaseModel";
-import { MedicalCare } from "./MedicalCare.model";
 import { Vaccine } from "./Vaccine.model";
 
 export class MedicalCareVaccine extends AuditedBaseEntity {
   readonly medicalCareId: string;
   readonly vaccineId: string;
 
-  private _medicalCare?: MedicalCare;
   private _vaccine?: Vaccine;
 
   constructor(props: {
@@ -16,18 +14,23 @@ export class MedicalCareVaccine extends AuditedBaseEntity {
     createdAt: Date;
     updatedAt?: Date;
     isDeleted: boolean;
-    medicalCare?: MedicalCare;
     vaccine?: Vaccine;
   }) {
     super(props.id, props.createdAt, props.updatedAt, props.isDeleted);
     this.medicalCareId = props.medicalCareId;
     this.vaccineId = props.vaccineId;
-    this._medicalCare = props.medicalCare;
     this._vaccine = props.vaccine;
   }
 
-  get medicalCare(): MedicalCare | undefined {
-    return this._medicalCare;
+  static create(medicalCareId: string, vaccine: Vaccine): MedicalCareVaccine {
+    return new MedicalCareVaccine({
+      id: `${medicalCareId}_${vaccine.id}`,
+      medicalCareId,
+      vaccineId: vaccine.id,
+      createdAt: new Date(),
+      isDeleted: false,
+      vaccine,
+    });
   }
 
   get vaccine(): Vaccine | undefined {

@@ -6,7 +6,6 @@ export class MedicalCareTag extends AuditedBaseEntity {
   readonly medicalCareId: string;
   readonly tagId: string;
 
-  private _medicalCare?: MedicalCare;
   private _tag?: Tag;
 
   constructor(props: {
@@ -16,18 +15,23 @@ export class MedicalCareTag extends AuditedBaseEntity {
     createdAt: Date;
     updatedAt?: Date;
     isDeleted: boolean;
-    medicalCare?: MedicalCare;
     tag?: Tag;
   }) {
     super(props.id, props.createdAt, props.updatedAt, props.isDeleted);
     this.medicalCareId = props.medicalCareId;
     this.tagId = props.tagId;
-    this._medicalCare = props.medicalCare;
     this._tag = props.tag;
   }
 
-  get medicalCare(): MedicalCare | undefined {
-    return this._medicalCare;
+  static create(medicalCareId: string, tag: Tag): MedicalCareTag {
+    return new MedicalCareTag({
+      id: `${medicalCareId}_${tag.id}`,
+      medicalCareId,
+      tagId: tag.id,
+      createdAt: new Date(),
+      isDeleted: false,
+      tag,
+    });
   }
 
   get tag(): Tag | undefined {

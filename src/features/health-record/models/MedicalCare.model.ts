@@ -3,6 +3,8 @@ import { Veterinarian } from "../../../core/models/veterinarian.model";
 import { HealthRecord } from "./HealthRecord.model";
 import { MedicalCareTag } from "./MedicalCareTag";
 import { MedicalCareVaccine } from "./MedicalCareVaccine.model";
+import { Tag } from "./Tag.model";
+import { Vaccine } from "./Vaccine.model";
 
 export class MedicalCare extends AuditedBaseEntity {
   readonly healthRecordId: string;
@@ -13,6 +15,7 @@ export class MedicalCare extends AuditedBaseEntity {
 
   private _healthRecord?: HealthRecord;
   private _veterinarian?: Veterinarian;
+
   private _tags: MedicalCareTag[] = [];
   private _vaccines: MedicalCareVaccine[] = [];
 
@@ -41,6 +44,7 @@ export class MedicalCare extends AuditedBaseEntity {
 
     this._healthRecord = props.healthRecord;
     this._veterinarian = props.veterinarian;
+
     if (props.tags) this._tags = props.tags;
     if (props.vaccines) this._vaccines = props.vaccines;
   }
@@ -59,5 +63,31 @@ export class MedicalCare extends AuditedBaseEntity {
 
   get vaccines(): readonly MedicalCareVaccine[] {
     return this._vaccines;
+  }
+
+  addTag(tag: Tag) {
+    if (this._tags.some((t) => t.tagId === tag.id)) return;
+
+    this._tags.push(MedicalCareTag.create(this.id, tag));
+  }
+
+  removeTag(tagId: string) {
+    const tag = this._tags.find((t) => t.tagId === tagId);
+    if (!tag) return;
+
+    tag.markAsDeleted();
+  }
+
+  addVaccine(vaccine: Vaccine) {
+    if (this._vaccines.some((v) => v.vaccineId === vaccine.id)) return;
+
+    this._vaccines.push(MedicalCareVaccine.create(this.id, vaccine));
+  }
+
+  removeVaccine(vaccineId: string) {
+    const vaccine = this._vaccines.find((v) => v.vaccineId === vaccineId);
+    if (!vaccine) return;
+
+    vaccine.markAsDeleted();
   }
 }

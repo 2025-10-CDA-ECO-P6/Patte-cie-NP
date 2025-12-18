@@ -186,10 +186,16 @@ model MedicalCareTag {
 }
 
 model MedicalCareVaccine {
+  // FK
   medicalCareId String
   vaccineId String
-  createdAt DateTime @default(now())
 
+  // Audit
+  createdAt DateTime @default(now())
+  updatedAt DateTime?
+  isDeleted Boolean @default(false)
+
+  // Relations
   medicalCare MedicalCare @relation(fields: [medicalCareId], references: [id], onDelete: Cascade)
   vaccine Vaccine @relation(fields: [vaccineId], references: [id])
 
@@ -201,8 +207,10 @@ model Vaccine {
   id String @id @default(uuid())
 
   // Columns
-  vaccineTypeId String
   name String
+
+  //FK
+  vaccineTypeId String
 
   // Audit
   createdAt DateTime @default(now())
