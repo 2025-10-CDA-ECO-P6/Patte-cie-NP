@@ -84,7 +84,7 @@ const toDomainVeterinarian = (
         record.phone,
         record.licenseNumber,
         record.createdAt,
-        record.updatedAt ?? undefined,
+        record.updatedAt,
         record.isDeleted
 
     );
