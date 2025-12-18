@@ -72,3 +72,31 @@ export interface CreateVeterinarianDTO {
     licenseNumber: string;
 }
 
+
+export interface UpdateVeterinarianDTO {
+    id: string;
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    phone?: string;
+    licenseNumber?: string;
+}
+export interface VeterinarianResponseDTO {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+    licenseNumber: string;
+}
+
+const toVeterinarianResponseDTO = (
+    veterinarian: Veterinarian
+): VeterinarianResponseDTO => ({
+    id: veterinarian.id,
+    firstName: veterinarian.firstName,
+    lastName: veterinarian.lastName,
+    email: veterinarian.email,
+    phone: veterinarian.phone,
+    licenseNumber: veterinarian.licenseNumber,
+});
