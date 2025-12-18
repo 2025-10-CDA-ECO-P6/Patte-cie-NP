@@ -90,3 +90,36 @@ model Veterinarian {
 
   // Relation
 }
+
+model User {
+  id       String @id @default(uuid())
+  email    String @unique
+  password String
+
+  // FK
+
+  roleId String
+
+  // Audite
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime?
+  isDeleted Boolean   @default(false)
+
+  // relation
+  role Role @relation(fields: [roleId], references: [id])
+}
+
+model Role {
+  id       String @id @default(uuid())
+  roleName String @unique
+
+  // Audite
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime?
+  isDeleted Boolean   @default(false)
+
+  // relation
+  users User[]
+}
