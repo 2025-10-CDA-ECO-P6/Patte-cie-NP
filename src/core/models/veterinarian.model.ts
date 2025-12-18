@@ -1,21 +1,29 @@
 import { AuditedBaseEntity } from "../bases/BaseModel";
 
 export class Veterinarian extends AuditedBaseEntity {
-    firstName: string;
-    lastName: string;
-    email: string;
-    phone: string;
-    licenseNumber: string;
+    readonly firstName: string;
+    readonly lastName: string;
+    readonly email: string;
+    readonly phone: string;
+    readonly licenseNumber: string;
 
+    constructor(props: {
+        id: string;
+        firstName: string;
+        lastName: string;
+        email: string;
+        phone: string;
+        licenseNumber: string;
+        createdAt: Date;
+        updatedAt?: Date;
+        isDeleted: boolean;
+    }) {
+        super(props.id, props.createdAt, props.updatedAt, props.isDeleted);
 
-    constructor(id: string, firstName: string, lastName: string, email: string, phone: string, licenseNumber: string,
-        createdAt: Date, updatedAt: Date, isDeleted: boolean) {
-        super((id = id), (createdAt = createdAt), (updatedAt = updatedAt), (isDeleted = isDeleted));
-
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.email = email;
-        this.phone = phone;
-        this.licenseNumber = licenseNumber;
+        this.firstName = props.firstName;
+        this.lastName = props.lastName;
+        this.email = props.email;
+        this.phone = props.phone;
+        this.licenseNumber = props.licenseNumber;
     }
 }
