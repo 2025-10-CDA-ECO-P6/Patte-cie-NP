@@ -2,7 +2,6 @@ import { randomUUID } from "crypto";
 import { Veterinarian } from "../models/veterinarian.model";
 import { VeterinarianRepository } from "../repositories/veterinarian.repository";
 
-
 export interface VeterinarianService {
     getById(id: string): Promise<VeterinarianResponseDTO | null>;
     getAll(): Promise<VeterinarianResponseDTO[]>;
@@ -25,17 +24,16 @@ export const VeterinarianServiceImpl = (
     },
 
     async create(dto: CreateVeterinarianDTO): Promise<VeterinarianResponseDTO> {
-        const veterinarian = new Veterinarian(
-            randomUUID(),
-            dto.firstName,
-            dto.lastName,
-            dto.email,
-            dto.phone,
-            dto.licenseNumber,
-            new Date(),
-            null,
-            false
-        );
+        const veterinarian = new Veterinarian({
+            id: randomUUID(),
+            firstName: dto.firstName,
+            lastName: dto.lastName,
+            email: dto.email,
+            phone: dto.phone,
+            licenseNumber: dto.licenseNumber,
+            createdAt: new Date(),
+            isDeleted: false,
+        });
 
         const saved = await veterinarianRepository.create(veterinarian);
         return toVeterinarianResponseDTO(saved);
@@ -45,17 +43,17 @@ export const VeterinarianServiceImpl = (
         const existing = await veterinarianRepository.getById(dto.id);
         if (!existing) throw new Error("Veterinarian not found");
 
-        const updatedVeterinarian = new Veterinarian(
-            existing.id,
-            dto.firstName ?? existing.firstName,
-            dto.lastName ?? existing.lastName,
-            dto.email ?? existing.email,
-            dto.phone ?? existing.phone,
-            dto.licenseNumber ?? existing.licenseNumber,
-            existing.createdAt,
-            new Date(),
-            existing.deleted
-        );
+        const updatedVeterinarian = new Veterinarian({
+            id: existing.id,
+            firstName: dto.firstName ?? existing.firstName,
+            lastName: dto.lastName ?? existing.lastName,
+            email: dto.email ?? existing.email,
+            phone: dto.phone ?? existing.phone,
+            licenseNumber: dto.licenseNumber ?? existing.licenseNumber,
+            createdAt: existing.createdAt,
+            updatedAt: new Date(),
+            isDeleted: existing.deleted,
+        });
 
         const saved = await veterinarianRepository.update(updatedVeterinarian);
         return toVeterinarianResponseDTO(saved);
@@ -102,3 +100,4 @@ const toVeterinarianResponseDTO = (
     phone: veterinarian.phone,
     licenseNumber: veterinarian.licenseNumber,
 });
+
