@@ -73,18 +73,15 @@ export const VeterinarianRepositoryImpl = (
     },
 });
 
-const toDomainVeterinarian = (
-    record: PrismaVeterinarian
-): Veterinarian =>
-    new Veterinarian(
-        record.id,
-        record.firstName,
-        record.lastName,
-        record.email,
-        record.phone,
-        record.licenseNumber,
-        record.createdAt,
-        record.updatedAt ?? undefined,
-        record.isDeleted
-
-    );
+const toDomainVeterinarian = (record: PrismaVeterinarian): Veterinarian =>
+    new Veterinarian({
+        id: record.id,
+        firstName: record.firstName,
+        lastName: record.lastName,
+        email: record.email,
+        phone: record.phone,
+        licenseNumber: record.licenseNumber,
+        createdAt: record.createdAt,
+        updatedAt: record.updatedAt ?? undefined,
+        isDeleted: record.isDeleted
+    });
