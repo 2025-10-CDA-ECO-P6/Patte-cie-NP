@@ -13,8 +13,6 @@ datasource db {
   provider = "postgresql"
 }
 
-// -----Core-----
-
 model Animal {
   // PK
   id String @id @default(uuid())
@@ -78,24 +76,68 @@ model AnimalOwner {
 }
 
 model Veterinarian {
-  // PK
-  id String @id @default(uuid())
-
-  // Columns
-  first_name String
-  last_name String
-  email String @unique
-  phone String @unique
+  id            String @id @default(uuid())
+  firstName     String
+  lastName      String
+  email         String @unique
+  phone         String @unique
   licenseNumber String @unique
 
   // Audite
-  createdAt DateTime @default(now())
+
+  createdAt DateTime  @default(now())
   updatedAt DateTime?
-  isDeleted Boolean @default(false)
+  isDeleted Boolean   @default(false)
 
   // Relation
   medicalCares MedicalCare[]
+}
 
+model User {
+  id       String @id @default(uuid())
+  email    String @unique
+  password String
+
+  // FK
+
+  roleId String
+
+  // Audite
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime?
+  isDeleted Boolean   @default(false)
+
+  // relation
+  role          Role           @relation(fields: [roleId], references: [id])
+  refreshTokens RefreshToken[]
+}
+
+model Role {
+  id       String @id @default(uuid())
+  roleName String @unique
+
+  // Audite
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime?
+  isDeleted Boolean   @default(false)
+
+  // relation
+  users User[]
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  expiresAt DateTime
+
+  // FK
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  // Audit
+  createdAt DateTime @default(now())
 }
 
 // -----Health_Record-----
@@ -106,18 +148,18 @@ model HealthRecord {
 
   // Columns
   description String
-  recordDate DateTime
+  recordDate  DateTime
 
   // FK 
   animalId String @unique
 
   // Audit
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
   updatedAt DateTime?
-  isDeleted Boolean @default(false)
+  isDeleted Boolean   @default(false)
 
   // Relation
-  animal Animal @relation( fields: [animalId],references: [id], onDelete: Cascade )
+  animal       Animal        @relation(fields: [animalId], references: [id], onDelete: Cascade)
   medicalCares MedicalCare[]
 }
 
@@ -126,25 +168,25 @@ model MedicalCare {
   id String @id @default(uuid())
 
   // Columns
-  type String
+  type        String
   description String
-  careDate DateTime
+  careDate    DateTime
 
   // FK
   healthRecordId String
   veterinarianId String
-  vaccineId String?
+  vaccineId      String?
 
   // Audit 
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
   updatedAt DateTime?
-  isDeleted Boolean @default(false)
+  isDeleted Boolean   @default(false)
 
   // Relations
-  healthRecord HealthRecord @relation( fields: [healthRecordId], references: [id], onDelete: Cascade )
-  veterinarian Veterinarian @relation( fields: [veterinarianId], references: [id] )
-  vaccines MedicalCareVaccine[]
-  tags MedicalCareTag[]
+  healthRecord HealthRecord         @relation(fields: [healthRecordId], references: [id], onDelete: Cascade)
+  veterinarian Veterinarian         @relation(fields: [veterinarianId], references: [id])
+  vaccines     MedicalCareVaccine[]
+  tags         MedicalCareTag[]
 
   @@index([healthRecordId])
   @@index([veterinarianId])
@@ -158,9 +200,9 @@ model Tag {
   name String @unique
 
   // Audit
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
   updatedAt DateTime?
-  isDeleted Boolean @default(false)
+  isDeleted Boolean   @default(false)
 
   // Relations
   medicalCares MedicalCareTag[]
@@ -169,16 +211,16 @@ model Tag {
 model MedicalCareTag {
   // FK
   medicalCareId String
-  tagId String
+  tagId         String
 
   // Audit
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
   updatedAt DateTime?
-  isDeleted Boolean @default(false)
+  isDeleted Boolean   @default(false)
 
   // Relations
-  medicalCare MedicalCare @relation( fields: [medicalCareId], references: [id], onDelete: Cascade )
-  tag Tag @relation( fields: [tagId], references: [id] )
+  medicalCare MedicalCare @relation(fields: [medicalCareId], references: [id], onDelete: Cascade)
+  tag         Tag         @relation(fields: [tagId], references: [id])
 
   @@id([medicalCareId, tagId])
 }
@@ -186,16 +228,16 @@ model MedicalCareTag {
 model MedicalCareVaccine {
   // FK
   medicalCareId String
-  vaccineId String
+  vaccineId     String
 
   // Audit
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
   updatedAt DateTime?
-  isDeleted Boolean @default(false)
+  isDeleted Boolean   @default(false)
 
   // Relations
   medicalCare MedicalCare @relation(fields: [medicalCareId], references: [id], onDelete: Cascade)
-  vaccine Vaccine @relation(fields: [vaccineId], references: [id])
+  vaccine     Vaccine     @relation(fields: [vaccineId], references: [id])
 
   @@id([medicalCareId, vaccineId])
 }
@@ -211,14 +253,13 @@ model Vaccine {
   vaccineTypeId String
 
   // Audit
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
   updatedAt DateTime?
-  isDeleted Boolean @default(false)
+  isDeleted Boolean   @default(false)
 
   // Relations
-  vaccineType VaccineType @relation( fields: [vaccineTypeId], references: [id] )
+  vaccineType  VaccineType          @relation(fields: [vaccineTypeId], references: [id])
   medicalCares MedicalCareVaccine[]
-
 }
 
 model VaccineType {
@@ -229,9 +270,9 @@ model VaccineType {
   name String @unique
 
   // Audit
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
   updatedAt DateTime?
-  isDeleted Boolean @default(false)
+  isDeleted Boolean   @default(false)
 
   // Relations
   vaccines Vaccine[]
