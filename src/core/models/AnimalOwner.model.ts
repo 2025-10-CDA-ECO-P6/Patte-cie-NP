@@ -22,6 +22,4 @@ export class AnimalOwner extends AuditedBaseEntity {
     this.startDate = props.startDate;
     this.endDate = props.endDate;
   }
-
-
 }
