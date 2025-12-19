@@ -236,18 +236,3 @@ model VaccineType {
   // Relations
   vaccines Vaccine[]
 }
-  id            String @id @default(uuid())
-  firstName     String
-  lastName      String
-  email         String @unique
-  phone         String @unique
-  licenseNumber String @unique
-
-  // Audite
-
-  createdAt DateTime  @default(now())
-  updatedAt DateTime?
-  isDeleted Boolean   @default(false)
-
-  // Relation
-}
