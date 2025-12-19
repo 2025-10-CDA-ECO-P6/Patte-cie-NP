@@ -1,11 +1,23 @@
 import jwt from "jsonwebtoken";
+import config from "../../../.config/config";
 
-export const generateAccessToken = (userId: string) =>
-    jwt.sign({ sub: userId }, process.env.JWT_SECRET!, {
-        expiresIn: "15m",
-    });
+export function generateAccessToken(userId: string): string {
+    return jwt.sign(
+        { sub: userId },
+        config.jwtSecret!,
+        { expiresIn: "15m" }
+    );
+}
 
-export const generateRefreshToken = (userId: string) =>
-    jwt.sign({ sub: userId }, process.env.JWT_REFRESH_SECRET!, {
-        expiresIn: "7d",
-    });
+export function generateRefreshToken(userId: string): string {
+    return jwt.sign(
+        {
+            sub: userId,
+            type: "refresh",
+        },
+        config.jwtRefreshSecret!,
+        {
+            expiresIn: "7d",
+        }
+    );
+}
