@@ -3,7 +3,7 @@ import { BaseRepository, BasePrismaRepository } from "../../../core/bases/BaseRe
 import { VaccineType } from "../models/VaccinType.model";
 
 export interface VaccineTypeRepository extends BaseRepository<VaccineType> {
-  getByName(name: string): Promise<VaccineType | null>;
+  getByName(name: string, withRelations?: boolean): Promise<VaccineType | null>;
 }
 
 export const VaccineTypeRepositoryImpl = (prisma: PrismaClient): VaccineTypeRepository => {
