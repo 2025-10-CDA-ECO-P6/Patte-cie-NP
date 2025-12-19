@@ -107,7 +107,8 @@ model User {
   isDeleted Boolean   @default(false)
 
   // relation
-  role Role @relation(fields: [roleId], references: [id])
+  role          Role           @relation(fields: [roleId], references: [id])
+  refreshTokens RefreshToken[]
 }
 
 model Role {
@@ -122,4 +123,17 @@ model Role {
 
   // relation
   users User[]
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  expiresAt DateTime
+
+  // FK
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  // Audit
+  createdAt DateTime @default(now())
 }
