@@ -1,10 +1,9 @@
-import createHttpError from "http-errors";
 import { PrismaClient } from "../../../../generated/prisma/client";
 import { BaseRepository, BasePrismaRepository } from "../../../core/bases/BaseRepository";
 import { VaccineType } from "../models/VaccinType.model";
 
 export interface VaccineTypeRepository extends BaseRepository<VaccineType> {
-  getByName(name: string): Promise<VaccineType | null>;
+  getByName(name: string, withRelations?: boolean): Promise<VaccineType | null>;
 }
 
 export const VaccineTypeRepositoryImpl = (prisma: PrismaClient): VaccineTypeRepository => {
@@ -17,17 +16,13 @@ export const VaccineTypeRepositoryImpl = (prisma: PrismaClient): VaccineTypeRepo
   return {
     ...base,
 
-    async getByName(name: string, withRelations = false): Promise<VaccineType> {
+    async getByName(name: string, withRelations = false): Promise<VaccineType | null> {
       const record = await prisma.vaccineType.findFirst({
         where: { name, isDeleted: false },
         include: withRelations ? {} : undefined,
       });
 
-      if (!record) {
-        throw new createHttpError.NotFound(`VaccineType with name "${name}" not found`);
-      }
-
-      return VaccineTypeMapper.toDomain(record);
+      return record ? VaccineTypeMapper.toDomain(record) : null;
     },
   };
 };

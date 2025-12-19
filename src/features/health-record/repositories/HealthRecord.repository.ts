@@ -1,4 +1,3 @@
-import createHttpError from "http-errors";
 import { Prisma, PrismaClient } from "../../../../generated/prisma/client";
 import { BasePrismaRepository, BaseRepository } from "../../../core/bases/BaseRepository";
 import { HealthRecord } from "../models/HealthRecord.model";
@@ -34,15 +33,12 @@ export const HealthRecordRepositoryImpl = (prisma: PrismaClient): HealthRecordRe
   return {
     ...base,
 
-    async getByAnimalId(animalId: string, withRelations = false): Promise<HealthRecord> {
+    async getByAnimalId(animalId: string, withRelations = false): Promise<HealthRecord | null> {
       const record = await prisma.healthRecord.findFirst({
         where: { animalId, isDeleted: false },
         include: withRelations ? defaultInclude : undefined,
       });
-
-      if (!record) throw new createHttpError.NotFound(`HealthRecord for animalId ${animalId} not found`);
-
-      return HealthRecordMapper.toDomain(record);
+      return record ? HealthRecordMapper.toDomain(record) : null;
     },
   };
 };

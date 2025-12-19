@@ -1,4 +1,3 @@
-import createHttpError from "http-errors";
 import { Prisma, PrismaClient } from "../../../../generated/prisma/client";
 import { BasePrismaRepository, BaseRepository, PrismaMapper } from "../../../core/bases/BaseRepository";
 import { MedicalCare } from "../models/MedicalCare.model";
@@ -11,7 +10,6 @@ import { VaccineType } from "../models/VaccinType.model";
 export interface MedicalCareRepository extends BaseRepository<MedicalCare> {
   getByHealthRecordId(healthRecordId: string, withRelations?: boolean): Promise<MedicalCare[]>;
 }
-
 export const MedicalCareRepositoryImpl = (prisma: PrismaClient): MedicalCareRepository => {
   const defaultInclude = {
     tags: { where: { isDeleted: false }, include: { tag: true } },
@@ -36,10 +34,6 @@ export const MedicalCareRepositoryImpl = (prisma: PrismaClient): MedicalCareRepo
         },
         include: withRelations ? defaultInclude : undefined,
       });
-
-      if (!records || records.length === 0) {
-        throw new createHttpError.NotFound(`No MedicalCare records found for healthRecordId ${healthRecordId}`);
-      }
 
       return records.map(MedicalCareMapper.toDomain);
     },

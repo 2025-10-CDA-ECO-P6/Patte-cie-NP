@@ -5,13 +5,11 @@ import { prisma } from "../lib/prisma"
 import { responseParser } from "./core/middlewares/responseParser.middleware";
 import { errorParser } from "./core/middlewares/errorParser.middleware";
 
-
 const app = express();
-app.use(cookieParser());
 
-// Prisma connection
 prisma.$connect();
 
+app.use(cookieParser());
 app.use(express.json());
 app.use(responseParser);
 app.use("/api", apiRoutes);
