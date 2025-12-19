@@ -1,22 +1,38 @@
-import { Request, Response, NextFunction } from "express"
-import config from "../../../.config/config";
+import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
+import config from "../../../.config/config";
 
-
-export const authenticationMiddleware = () => {
-    return async (req: Request, res: Response, next: NextFunction) => {
-        const token = req.cookies.access_token;
-
-        if (!token) {
-            return res.status(401).json({ message: "Token missing" });
-        }
-        try {
-            const decoded = jwt.verify(token, config.jwtSecret) as { sub: string };
-
-            next();
-
-        } catch {
-            return res.status(401).json({ message: "Invalid token" });
-        }
-    }
+interface AuthenticatedRequest extends Request {
+    user?: {
+        id: string;
+    };
 }
+
+interface JwtPayload {
+    sub: string;
+}
+
+export const authenticationMiddleware = (req: Request, res: Response, next: NextFunction) => {
+    const token = req.cookies?.access_token;
+
+    if (!token) {
+        return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    try {
+        const payload = jwt.verify(
+            token,
+            config.jwtSecret
+        ) as JwtPayload;
+
+        const authReq = req as AuthenticatedRequest;
+
+        authReq.user = {
+            id: payload.sub,
+        };
+
+        next();
+    } catch {
+        return res.status(401).json({ message: "Unauthorized" });
+    }
+};
