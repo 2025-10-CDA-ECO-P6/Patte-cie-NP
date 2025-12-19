@@ -1,3 +1,4 @@
+import createHttpError from "http-errors";
 import { BaseApiService, BaseApiServiceImpl } from "../../../core/bases/BaseApiService";
 import { MedicalCare } from "../models/MedicalCare.model";
 import { Tag } from "../models/Tag.model";
@@ -19,19 +20,24 @@ export const MedicalCareServiceImpl = (
   tagRepository: TagRepository,
   vaccineRepository: VaccineRepository
 ): MedicalCareService => {
-  const toResponseDTO = (mc: MedicalCare): MedicalCareResponseDTO => ({
-    id: mc.id,
-    healthRecordId: mc.healthRecordId,
-    veterinarianId: mc.veterinarianId,
-    type: mc.type,
-    description: mc.description,
-    careDate: mc.careDate,
-    tags: mc.tags.map((t) => ({ id: t.tagId, name: t.tag?.name })),
-    vaccines: mc.vaccines.map((v) => ({ id: v.vaccineId, name: v.vaccine?.name })),
-  });
+  const toResponseDTO = (mc: MedicalCare): MedicalCareResponseDTO => {
+    const dto: MedicalCareResponseDTO = {
+      id: mc.id,
+      healthRecordId: mc.healthRecordId,
+      veterinarianId: mc.veterinarianId,
+      type: mc.type,
+      description: mc.description,
+      careDate: mc.careDate,
+      tags: mc.tags.map((t) => ({ id: t.tagId, name: t.tag?.name })),
+      vaccines: mc.vaccines.map((v) => ({ id: v.vaccineId, name: v.vaccine?.name })),
+    };
+    validateMedicalCareResponse(dto);
+    return dto;
+  };
 
-  const createDomain = (dto: MedicalCareCreateDTO): MedicalCare =>
-    new MedicalCare({
+  const createDomain = (dto: MedicalCareCreateDTO): MedicalCare => {
+    validateMedicalCareInput(dto);
+    return new MedicalCare({
       id: crypto.randomUUID(),
       healthRecordId: dto.healthRecordId,
       veterinarianId: dto.veterinarianId,
@@ -41,55 +47,84 @@ export const MedicalCareServiceImpl = (
       createdAt: new Date(),
       isDeleted: false,
     });
+  };
 
   const updateDomain = (existing: MedicalCare, dto: MedicalCareUpdateDTO): MedicalCare => {
-    existing.type = dto.type;
-    existing.description = dto.description;
-    existing.careDate = dto.careDate;
+    validateMedicalCareInput(dto);
+    existing.setType(dto.type);
+    existing.setDescription(dto.description);
+    existing.setCareDate(dto.careDate);
     return existing;
   };
 
-  const baseService = BaseApiServiceImpl(repository, toResponseDTO, createDomain, updateDomain);
+  const baseService = BaseApiServiceImpl(
+    repository,
+    toResponseDTO,
+    createDomain,
+    updateDomain,
+    validateMedicalCareInput,
+    validateMedicalCareResponse
+  );
 
   return {
     ...baseService,
 
-    async addTag(medicalCareId, dto) {
+    async addTag(medicalCareId: string, dto: AddTagDTO) {
+      validateAddTagInput(dto);
+
       const mc = await repository.getById(medicalCareId, true);
-      if (!mc) throw new Error("MedicalCare not found");
+      if (!mc) throw new createHttpError.NotFound(`MedicalCare with id ${medicalCareId} not found`);
 
       const tag = await tagRepository.getById(dto.tagId);
-      if (!tag) throw new Error("Tag not found");
+      if (!tag) throw new createHttpError.NotFound(`Tag with id ${dto.tagId} not found`);
 
       mc.addTag(tag);
-      return toResponseDTO(await repository.update(mc, true));
+
+      const saved = await repository.update(mc, true);
+      if (!saved) throw new createHttpError.InternalServerError(`Failed to update MedicalCare with id ${mc.id}`);
+
+      return toResponseDTO(saved);
     },
 
-    async removeTag(medicalCareId, tagId) {
+    async removeTag(medicalCareId: string, tagId: string) {
       const mc = await repository.getById(medicalCareId, true);
-      if (!mc) throw new Error("MedicalCare not found");
+      if (!mc) throw new createHttpError.NotFound(`MedicalCare with id ${medicalCareId} not found`);
 
       mc.removeTag(tagId);
-      return toResponseDTO(await repository.update(mc, true));
+
+      const saved = await repository.update(mc, true);
+      if (!saved) throw new createHttpError.InternalServerError(`Failed to update MedicalCare with id ${mc.id}`);
+
+      return toResponseDTO(saved);
     },
 
-    async addVaccine(medicalCareId, dto) {
+    async addVaccine(medicalCareId: string, dto: AddVaccineDTO) {
+      validateAddVaccineInput(dto);
+
       const mc = await repository.getById(medicalCareId, true);
-      if (!mc) throw new Error("MedicalCare not found");
+      if (!mc) throw new createHttpError.NotFound(`MedicalCare with id ${medicalCareId} not found`);
 
       const vaccine = await vaccineRepository.getById(dto.vaccineId);
-      if (!vaccine) throw new Error("Vaccine not found");
+      if (!vaccine) throw new createHttpError.NotFound(`Vaccine with id ${dto.vaccineId} not found`);
 
       mc.addVaccine(vaccine);
-      return toResponseDTO(await repository.update(mc, true));
+
+      const saved = await repository.update(mc, true);
+      if (!saved) throw new createHttpError.InternalServerError(`Failed to update MedicalCare with id ${mc.id}`);
+
+      return toResponseDTO(saved);
     },
 
-    async removeVaccine(medicalCareId, vaccineId) {
+    async removeVaccine(medicalCareId: string, vaccineId: string) {
       const mc = await repository.getById(medicalCareId, true);
-      if (!mc) throw new Error("MedicalCare not found");
+      if (!mc) throw new createHttpError.NotFound(`MedicalCare with id ${medicalCareId} not found`);
 
       mc.removeVaccine(vaccineId);
-      return toResponseDTO(await repository.update(mc, true));
+
+      const saved = await repository.update(mc, true);
+      if (!saved) throw new createHttpError.InternalServerError(`Failed to update MedicalCare with id ${mc.id}`);
+
+      return toResponseDTO(saved);
     },
   };
 };
@@ -126,3 +161,53 @@ export interface AddTagDTO {
 export interface AddVaccineDTO {
   vaccineId: string;
 }
+
+const validateMedicalCareInput = (dto: MedicalCareCreateDTO | MedicalCareUpdateDTO) => {
+  if (!dto.healthRecordId || typeof dto.healthRecordId !== "string") {
+    throw new createHttpError.BadRequest("healthRecordId is required and must be a string");
+  }
+  if (!dto.veterinarianId || typeof dto.veterinarianId !== "string") {
+    throw new createHttpError.BadRequest("veterinarianId is required and must be a string");
+  }
+  if (!dto.type || typeof dto.type !== "string") {
+    throw new createHttpError.BadRequest("type is required and must be a string");
+  }
+  if (!dto.description || typeof dto.description !== "string") {
+    throw new createHttpError.BadRequest("description is required and must be a string");
+  }
+  if (!dto.careDate || !(dto.careDate instanceof Date)) {
+    throw new createHttpError.BadRequest("careDate is required and must be a Date");
+  }
+};
+
+const validateAddTagInput = (dto: AddTagDTO) => {
+  if (!dto.tagId || typeof dto.tagId !== "string") {
+    throw new createHttpError.BadRequest("tagId is required and must be a string");
+  }
+};
+
+const validateAddVaccineInput = (dto: AddVaccineDTO) => {
+  if (!dto.vaccineId || typeof dto.vaccineId !== "string") {
+    throw new createHttpError.BadRequest("vaccineId is required and must be a string");
+  }
+};
+
+const validateMedicalCareResponse = (dto: MedicalCareResponseDTO) => {
+  if (!dto.id || typeof dto.id !== "string") throw new createHttpError.InternalServerError("Response id is invalid");
+  if (!dto.healthRecordId || typeof dto.healthRecordId !== "string")
+    throw new createHttpError.InternalServerError("Response healthRecordId is invalid");
+  if (!dto.veterinarianId || typeof dto.veterinarianId !== "string")
+    throw new createHttpError.InternalServerError("Response veterinarianId is invalid");
+  if (!dto.type || typeof dto.type !== "string")
+    throw new createHttpError.InternalServerError("Response type is invalid");
+  if (!dto.careDate || !(dto.careDate instanceof Date))
+    throw new createHttpError.InternalServerError("Response careDate is invalid");
+
+  dto.tags.forEach((t) => {
+    if (!t.id || typeof t.id !== "string") throw new createHttpError.InternalServerError("Tag id is invalid");
+  });
+
+  dto.vaccines.forEach((v) => {
+    if (!v.id || typeof v.id !== "string") throw new createHttpError.InternalServerError("Vaccine id is invalid");
+  });
+};

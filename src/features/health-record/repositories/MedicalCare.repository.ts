@@ -10,7 +10,6 @@ import { VaccineType } from "../models/VaccinType.model";
 export interface MedicalCareRepository extends BaseRepository<MedicalCare> {
   getByHealthRecordId(healthRecordId: string, withRelations?: boolean): Promise<MedicalCare[]>;
 }
-
 export const MedicalCareRepositoryImpl = (prisma: PrismaClient): MedicalCareRepository => {
   const defaultInclude = {
     tags: { where: { isDeleted: false }, include: { tag: true } },

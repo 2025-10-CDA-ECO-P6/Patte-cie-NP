@@ -1,3 +1,4 @@
+import createHttpError from "http-errors";
 import { BaseApiService, BaseApiServiceImpl } from "../../../core/bases/BaseApiService";
 import { Tag } from "../models/Tag.model";
 import { TagRepository } from "../repositories/Tag.repository";
@@ -7,21 +8,25 @@ export interface TagService extends BaseApiService<Tag, TagCreateDTO, TagUpdateD
 }
 
 export const TagServiceImpl = (repository: TagRepository): TagService => {
-  const toResponseDTO = (tag: Tag): TagResponseDTO => ({
-    id: tag.id,
-    name: tag.name,
-  });
+  const toResponseDTO = (tag: Tag): TagResponseDTO => {
+    const dto: TagResponseDTO = { id: tag.id, name: tag.name };
+    validateTagResponse(dto);
+    return dto;
+  };
 
-  const createDomain = (dto: TagCreateDTO): Tag =>
-    new Tag({
+  const createDomain = (dto: TagCreateDTO): Tag => {
+    validateTagInput(dto);
+    return new Tag({
       id: crypto.randomUUID(),
       name: dto.name,
       createdAt: new Date(),
       isDeleted: false,
     });
+  };
 
   const updateDomain = (existing: Tag, dto: TagUpdateDTO): Tag => {
-    existing.name = dto.name;
+    validateTagInput(dto);
+    existing.updateName(dto.name);
     return existing;
   };
 
@@ -29,20 +34,26 @@ export const TagServiceImpl = (repository: TagRepository): TagService => {
     repository,
     toResponseDTO,
     createDomain,
-    updateDomain
+    updateDomain,
+    validateTagInput,
+    validateTagResponse
   );
 
   return {
     ...baseService,
 
-    async getByName(name: string) {
+    async getByName(name: string): Promise<TagResponseDTO> {
+      if (!name || typeof name !== "string") {
+        throw new createHttpError.BadRequest("Name must be a non-empty string");
+      }
+
       const tag = await repository.getByName(name);
-      return tag ? toResponseDTO(tag) : null;
+      if (!tag) throw new createHttpError.NotFound(`Tag with name "${name}" not found`);
+
+      return toResponseDTO(tag);
     },
   };
 };
-
-// DTOs
 
 export interface TagResponseDTO {
   id: string;
@@ -57,7 +68,17 @@ export interface TagUpdateDTO extends TagCreateDTO {
   id: string;
 }
 
-// QueryOptions si nécessaire pour BaseApiService
-export interface QueryOptions {
-  withRelations?: boolean;
-}
+const validateTagInput = (dto: TagCreateDTO | TagUpdateDTO) => {
+  if (!dto.name || typeof dto.name !== "string") {
+    throw new createHttpError.BadRequest("Tag name is required and must be a string");
+  }
+};
+
+const validateTagResponse = (dto: TagResponseDTO) => {
+  if (!dto.id || typeof dto.id !== "string") {
+    throw new createHttpError.InternalServerError("Response id is invalid");
+  }
+  if (!dto.name || typeof dto.name !== "string") {
+    throw new createHttpError.InternalServerError("Response name is invalid");
+  }
+};

@@ -7,11 +7,11 @@ import { Tag } from "./Tag.model";
 import { Vaccine } from "./Vaccine.model";
 
 export class MedicalCare extends AuditedBaseEntity {
-  healthRecordId: string;
-  veterinarianId: string;
-  type: string;
-  description: string;
-  careDate: Date;
+  private _healthRecordId!: string;
+  private _veterinarianId!: string;
+  private _type!: string;
+  private _description!: string;
+  private _careDate!: Date;
 
   private _healthRecord?: HealthRecord;
   private _veterinarian?: Veterinarian;
@@ -36,17 +36,37 @@ export class MedicalCare extends AuditedBaseEntity {
   }) {
     super(props.id, props.createdAt, props.updatedAt, props.isDeleted);
 
-    this.healthRecordId = props.healthRecordId;
-    this.veterinarianId = props.veterinarianId;
-    this.type = props.type;
-    this.description = props.description;
-    this.careDate = props.careDate;
+    this.setHealthRecordId(props.healthRecordId);
+    this.setVeterinarianId(props.veterinarianId);
+    this.setType(props.type);
+    this.setDescription(props.description);
+    this.setCareDate(props.careDate);
 
     this._healthRecord = props.healthRecord;
     this._veterinarian = props.veterinarian;
 
-    if (props.tags) this._tags = props.tags;
-    if (props.vaccines) this._vaccines = props.vaccines;
+    if (props.tags) this._tags = [...props.tags];
+    if (props.vaccines) this._vaccines = [...props.vaccines];
+  }
+
+  get healthRecordId(): string {
+    return this._healthRecordId;
+  }
+
+  get veterinarianId(): string {
+    return this._veterinarianId;
+  }
+
+  get type(): string {
+    return this._type;
+  }
+
+  get description(): string {
+    return this._description;
+  }
+
+  get careDate(): Date {
+    return this._careDate;
   }
 
   get healthRecord(): HealthRecord | undefined {
@@ -65,29 +85,51 @@ export class MedicalCare extends AuditedBaseEntity {
     return this._vaccines;
   }
 
-  addTag(tag: Tag) {
-    if (this._tags.some((t) => t.tagId === tag.id)) return;
+  setHealthRecordId(id: string): void {
+    if (!id) throw new Error("HealthRecordId is required");
+    this._healthRecordId = id;
+  }
 
+  setVeterinarianId(id: string): void {
+    if (!id) throw new Error("VeterinarianId is required");
+    this._veterinarianId = id;
+  }
+
+  setType(type: string): void {
+    if (!type) throw new Error("MedicalCare type is required");
+    this._type = type;
+  }
+
+  setDescription(description: string): void {
+    this._description = description ?? "";
+  }
+
+  setCareDate(date: Date): void {
+    if (!(date instanceof Date)) {
+      throw new Error("CareDate must be a valid date");
+    }
+    this._careDate = date;
+  }
+
+  addTag(tag: Tag): void {
+    if (this._tags.some((t) => t.tagId === tag.id)) return;
     this._tags.push(MedicalCareTag.create(this.id, tag));
   }
 
-  removeTag(tagId: string) {
+  removeTag(tagId: string): void {
     const tag = this._tags.find((t) => t.tagId === tagId);
     if (!tag) return;
-
     tag.markAsDeleted();
   }
 
-  addVaccine(vaccine: Vaccine) {
+  addVaccine(vaccine: Vaccine): void {
     if (this._vaccines.some((v) => v.vaccineId === vaccine.id)) return;
-
     this._vaccines.push(MedicalCareVaccine.create(this.id, vaccine));
   }
 
-  removeVaccine(vaccineId: string) {
+  removeVaccine(vaccineId: string): void {
     const vaccine = this._vaccines.find((v) => v.vaccineId === vaccineId);
     if (!vaccine) return;
-
     vaccine.markAsDeleted();
   }
 }

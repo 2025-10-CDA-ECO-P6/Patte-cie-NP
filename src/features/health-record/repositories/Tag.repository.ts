@@ -21,6 +21,7 @@ export const TagRepositoryImpl = (prisma: PrismaClient): TagRepository => {
         where: { name, isDeleted: false },
         include: withRelations ? {} : undefined,
       });
+
       return record ? TagMapper.toDomain(record) : null;
     },
   };

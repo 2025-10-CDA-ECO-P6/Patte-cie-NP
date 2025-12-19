@@ -1,9 +1,10 @@
+import createHttpError from "http-errors";
 import { AuditedBaseEntity } from "../../../core/bases/BaseModel";
 import { Tag } from "./Tag.model";
 
 export class MedicalCareTag extends AuditedBaseEntity {
-  medicalCareId: string;
-  tagId: string;
+  private _medicalCareId!: string;
+  private _tagId!: string;
 
   private _tag?: Tag;
 
@@ -17,12 +18,18 @@ export class MedicalCareTag extends AuditedBaseEntity {
     tag?: Tag;
   }) {
     super(props.id, props.createdAt, props.updatedAt, props.isDeleted);
-    this.medicalCareId = props.medicalCareId;
-    this.tagId = props.tagId;
+
+    this.setMedicalCareId(props.medicalCareId);
+    this.setTagId(props.tagId);
+
     this._tag = props.tag;
   }
 
   static create(medicalCareId: string, tag: Tag): MedicalCareTag {
+    if (!medicalCareId || !tag?.id) {
+      throw new createHttpError.BadRequest("Invalid MedicalCareId or Tag");
+    }
+
     return new MedicalCareTag({
       id: `${medicalCareId}_${tag.id}`,
       medicalCareId,
@@ -33,7 +40,29 @@ export class MedicalCareTag extends AuditedBaseEntity {
     });
   }
 
+  get medicalCareId(): string {
+    return this._medicalCareId;
+  }
+
+  get tagId(): string {
+    return this._tagId;
+  }
+
   get tag(): Tag | undefined {
     return this._tag;
+  }
+
+  private setMedicalCareId(value: string): void {
+    if (!value || value.trim().length === 0) {
+      throw new createHttpError.BadRequest("medicalCareId is required");
+    }
+    this._medicalCareId = value;
+  }
+
+  private setTagId(value: string): void {
+    if (!value || value.trim().length === 0) {
+      throw new createHttpError.BadRequest("tagId is required");
+    }
+    this._tagId = value;
   }
 }
