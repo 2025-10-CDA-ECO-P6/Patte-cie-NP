@@ -19,8 +19,16 @@ export const AuthController = {
             });
 
             res.json({ message: "Logged in" });
-        } catch (error) {
+        } catch {
             res.status(401).json({ message: "Invalid credentials" });
         }
+    },
+    async logout(_req: Request, res: Response) {
+        res.clearCookie("access_token", {
+            httpOnly: true,
+            sameSite: "strict",
+        });
+
+        return res.status(204).send();
     },
 };
