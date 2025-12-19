@@ -1,10 +1,9 @@
 import { AuditedBaseEntity } from "../../../core/bases/BaseModel";
-import { MedicalCare } from "./MedicalCare.model";
 import { Tag } from "./Tag.model";
 
 export class MedicalCareTag extends AuditedBaseEntity {
-  readonly medicalCareId: string;
-  readonly tagId: string;
+  medicalCareId: string;
+  tagId: string;
 
   private _tag?: Tag;
 

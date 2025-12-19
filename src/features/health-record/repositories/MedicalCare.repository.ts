@@ -8,45 +8,35 @@ import { Vaccine } from "../models/Vaccine.model";
 import { VaccineType } from "../models/VaccinType.model";
 
 export interface MedicalCareRepository extends BaseRepository<MedicalCare> {
-  getByHealthRecordId(healthRecordId: string): Promise<MedicalCare[]>;
-  getByIdWithRelations(id: string): Promise<MedicalCare | null>;
+  getByHealthRecordId(healthRecordId: string, withRelations?: boolean): Promise<MedicalCare[]>;
 }
 
 export const MedicalCareRepositoryImpl = (prisma: PrismaClient): MedicalCareRepository => {
+  const defaultInclude = {
+    tags: { where: { isDeleted: false }, include: { tag: true } },
+    vaccines: { where: { isDeleted: false }, include: { vaccine: { include: { vaccineType: true } } } },
+  };
+
   const base = BasePrismaRepository<MedicalCare, PrismaMedicalCareCreate, PrismaMedicalCareUpdate>({
     prisma,
     modelName: "medicalCare",
     mapper: MedicalCareMapper,
+    defaultInclude,
   });
 
   return {
     ...base,
 
-    async getByHealthRecordId(healthRecordId: string): Promise<MedicalCare[]> {
+    async getByHealthRecordId(healthRecordId: string, withRelations = false): Promise<MedicalCare[]> {
       const records = await prisma.medicalCare.findMany({
         where: {
           healthRecordId,
           isDeleted: false,
         },
-        include: {
-          tags: { where: { isDeleted: false }, include: { tag: true } },
-          vaccines: { where: { isDeleted: false }, include: { vaccine: { include: { vaccineType: true } } } },
-        },
+        include: withRelations ? defaultInclude : undefined,
       });
 
       return records.map(MedicalCareMapper.toDomain);
-    },
-
-    async getByIdWithRelations(id: string): Promise<MedicalCare | null> {
-      const record = await prisma.medicalCare.findUnique({
-        where: { id },
-        include: {
-          tags: { where: { isDeleted: false }, include: { tag: true } },
-          vaccines: { where: { isDeleted: false }, include: { vaccine: { include: { vaccineType: true } } } },
-        },
-      });
-
-      return record ? MedicalCareMapper.toDomain(record) : null;
     },
   };
 };
@@ -133,16 +123,46 @@ export const MedicalCareMapper = {
       careDate: entity.careDate,
       createdAt: entity.createdAt,
       isDeleted: entity.deleted,
+      tags: entity.tags.map((t) => ({ tagId: t.tagId, createdAt: t.createdAt, isDeleted: t.deleted })),
+      vaccines: entity.vaccines.map((v) => ({ vaccineId: v.vaccineId, createdAt: v.createdAt, isDeleted: v.deleted })),
     };
   },
 
   toUpdate(entity: MedicalCare) {
+    const createTags = entity.tags
+      .filter((t) => !t.id)
+      .map((t) => ({ tagId: t.tagId, createdAt: t.createdAt, isDeleted: t.deleted }));
+    const updateTags = entity.tags
+      .filter((t) => t.id)
+      .map((t) => ({
+        where: { medicalCareId_tagId: { medicalCareId: entity.id, tagId: t.tagId } },
+        data: { isDeleted: t.deleted },
+      }));
+
+    const createVaccines = entity.vaccines
+      .filter((v) => !v.id)
+      .map((v) => ({ vaccineId: v.vaccineId, createdAt: v.createdAt, isDeleted: v.deleted }));
+    const updateVaccines = entity.vaccines
+      .filter((v) => v.id)
+      .map((v) => ({
+        where: { medicalCareId_vaccineId: { medicalCareId: entity.id, vaccineId: v.vaccineId } },
+        data: { isDeleted: v.deleted },
+      }));
+
     return {
       type: entity.type,
       description: entity.description,
       careDate: entity.careDate,
       updatedAt: new Date(),
       isDeleted: entity.deleted,
+      tags: {
+        create: createTags,
+        updateMany: updateTags,
+      },
+      vaccines: {
+        create: createVaccines,
+        updateMany: updateVaccines,
+      },
     };
   },
 };

@@ -7,11 +7,11 @@ import { Tag } from "./Tag.model";
 import { Vaccine } from "./Vaccine.model";
 
 export class MedicalCare extends AuditedBaseEntity {
-  readonly healthRecordId: string;
-  readonly veterinarianId: string;
-  readonly type: string;
-  readonly description: string;
-  readonly careDate: Date;
+  healthRecordId: string;
+  veterinarianId: string;
+  type: string;
+  description: string;
+  careDate: Date;
 
   private _healthRecord?: HealthRecord;
   private _veterinarian?: Veterinarian;

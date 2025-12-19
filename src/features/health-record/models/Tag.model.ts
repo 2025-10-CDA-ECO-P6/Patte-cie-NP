@@ -1,7 +1,7 @@
 import { AuditedBaseEntity } from "../../../core/bases/BaseModel";
 
 export class Tag extends AuditedBaseEntity {
-  readonly name: string;
+  name: string;
 
   constructor(props: { id: string; name: string; createdAt: Date; updatedAt?: Date; isDeleted: boolean }) {
     super(props.id, props.createdAt, props.updatedAt, props.isDeleted);

@@ -16,9 +16,10 @@ export const VaccineTypeRepositoryImpl = (prisma: PrismaClient): VaccineTypeRepo
   return {
     ...base,
 
-    async getByName(name: string): Promise<VaccineType | null> {
+    async getByName(name: string, withRelations = false): Promise<VaccineType | null> {
       const record = await prisma.vaccineType.findFirst({
         where: { name, isDeleted: false },
+        include: withRelations ? {} : undefined,
       });
 
       return record ? VaccineTypeMapper.toDomain(record) : null;

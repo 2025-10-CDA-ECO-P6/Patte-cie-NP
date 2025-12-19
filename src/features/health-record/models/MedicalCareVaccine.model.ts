@@ -2,8 +2,8 @@ import { AuditedBaseEntity } from "../../../core/bases/BaseModel";
 import { Vaccine } from "./Vaccine.model";
 
 export class MedicalCareVaccine extends AuditedBaseEntity {
-  readonly medicalCareId: string;
-  readonly vaccineId: string;
+  medicalCareId: string;
+  vaccineId: string;
 
   private _vaccine?: Vaccine;
 

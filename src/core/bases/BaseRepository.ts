@@ -1,10 +1,10 @@
 import { PrismaClient } from "../../../generated/prisma/client";
 
 export interface BaseRepository<T> {
-  getById(id: string): Promise<T | null>;
-  getAll(): Promise<T[]>;
-  create(entity: T): Promise<T>;
-  update(entity: T): Promise<T>;
+  getById(id: string, include?: any): Promise<T | null>;
+  getAll(include?: any): Promise<T[]>;
+  create(entity: T, include?: any): Promise<T>;
+  update(entity: T, include?: any): Promise<T>;
   delete(id: string): Promise<void>;
 }
 
@@ -27,39 +27,48 @@ export const BasePrismaRepository = <TDomain, TCreate, TUpdate>(params: {
   prisma: PrismaClient;
   modelName: keyof PrismaClient;
   mapper: PrismaMapper<TDomain, TCreate, TUpdate>;
+  defaultInclude?: any;
 }) => {
-  const { prisma, modelName, mapper } = params;
+  const { prisma, modelName, mapper, defaultInclude } = params;
   const model: PrismaModel = (prisma as any)[modelName];
 
   return {
-    async getById(id: string, include?: any): Promise<TDomain | null> {
+    async getById(id: string, withRelations = false): Promise<TDomain | null> {
       const record = await model.findFirst({
         where: { id, isDeleted: false },
-        include,
+        include: withRelations ? defaultInclude : undefined,
       });
+
       return record ? mapper.toDomain(record) : null;
     },
 
-    async getAll(include?: any): Promise<TDomain[]> {
+    async getAll(withRelations = false): Promise<TDomain[]> {
       const records = await model.findMany({
         where: { isDeleted: false },
-        include,
+        include: withRelations ? defaultInclude : undefined,
       });
+
       return records.map(mapper.toDomain);
     },
 
-    async create(entity: TDomain): Promise<TDomain> {
+    async create(entity: TDomain, withRelations = false): Promise<TDomain> {
       const record = await model.create({
         data: mapper.toCreate(entity),
+        include: withRelations ? defaultInclude : undefined,
       });
+
       return mapper.toDomain(record);
     },
 
-    async update(entity: TDomain): Promise<TDomain> {
+    async update(entity: TDomain, withRelations = false): Promise<TDomain> {
+      const data = mapper.toUpdate(entity);
+
       const record = await model.update({
         where: { id: (entity as any).id },
-        data: mapper.toUpdate(entity),
+        data,
+        include: withRelations ? defaultInclude : undefined,
       });
+
       return mapper.toDomain(record);
     },
 

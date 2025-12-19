@@ -2,9 +2,9 @@ import { AuditedBaseEntity } from "../../../core/bases/BaseModel";
 import { MedicalCare } from "./MedicalCare.model";
 
 export class HealthRecord extends AuditedBaseEntity {
-  readonly animalId: string;
-  readonly description: string;
-  readonly recordDate: Date;
+  animalId: string;
+  description: string;
+  recordDate: Date;
 
   private _medicalCares: MedicalCare[] = [];
 
@@ -31,5 +31,20 @@ export class HealthRecord extends AuditedBaseEntity {
 
   get medicalCares(): readonly MedicalCare[] {
     return this._medicalCares;
+  }
+
+  addMedicalCare(medicalCare: MedicalCare): void {
+    if (this._medicalCares.some((mc) => mc.id === medicalCare.id)) {
+      return;
+    }
+
+    this._medicalCares.push(medicalCare);
+  }
+
+  removeMedicalCare(medicalCareId: string): void {
+    const medicalCare = this._medicalCares.find((mc) => mc.id === medicalCareId);
+    if (!medicalCare) return;
+
+    medicalCare.markAsDeleted();
   }
 }

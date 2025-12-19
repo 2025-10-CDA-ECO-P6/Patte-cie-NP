@@ -3,7 +3,7 @@ import { BaseRepository, BasePrismaRepository } from "../../../core/bases/BaseRe
 import { Tag } from "../models/Tag.model";
 
 export interface TagRepository extends BaseRepository<Tag> {
-  getByName(name: string): Promise<Tag | null>;
+  getByName(name: string, withRelations?: boolean): Promise<Tag | null>;
 }
 
 export const TagRepositoryImpl = (prisma: PrismaClient): TagRepository => {
@@ -16,11 +16,11 @@ export const TagRepositoryImpl = (prisma: PrismaClient): TagRepository => {
   return {
     ...base,
 
-    async getByName(name: string): Promise<Tag | null> {
+    async getByName(name: string, withRelations = false): Promise<Tag | null> {
       const record = await prisma.tag.findFirst({
         where: { name, isDeleted: false },
+        include: withRelations ? {} : undefined,
       });
-
       return record ? TagMapper.toDomain(record) : null;
     },
   };

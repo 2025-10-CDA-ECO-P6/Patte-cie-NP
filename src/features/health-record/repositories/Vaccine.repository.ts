@@ -4,23 +4,26 @@ import { Vaccine } from "../models/Vaccine.model";
 import { VaccineType } from "../models/VaccinType.model";
 
 export interface VaccineRepository extends BaseRepository<Vaccine> {
-  getByVaccineTypeId(vaccineTypeId: string): Promise<Vaccine[]>;
+  getByVaccineTypeId(vaccineTypeId: string, withRelations?: boolean): Promise<Vaccine[]>;
 }
 
 export const VaccineRepositoryImpl = (prisma: PrismaClient): VaccineRepository => {
+  const defaultInclude = { vaccineType: true };
+
   const base = BasePrismaRepository<Vaccine, PrismaVaccineCreate, PrismaVaccineUpdate>({
     prisma,
     modelName: "vaccine",
     mapper: VaccineMapper,
+    defaultInclude,
   });
 
   return {
     ...base,
 
-    async getByVaccineTypeId(vaccineTypeId: string): Promise<Vaccine[]> {
+    async getByVaccineTypeId(vaccineTypeId: string, withRelations = false): Promise<Vaccine[]> {
       const records = await prisma.vaccine.findMany({
         where: { vaccineTypeId, isDeleted: false },
-        include: { vaccineType: true },
+        include: withRelations ? defaultInclude : undefined,
       });
 
       return records.map(VaccineMapper.toDomain);

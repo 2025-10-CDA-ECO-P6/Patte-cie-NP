@@ -1,4 +1,4 @@
-import { Prisma, PrismaClient} from "../../../../generated/prisma/client";
+import { Prisma, PrismaClient } from "../../../../generated/prisma/client";
 import { BasePrismaRepository, BaseRepository } from "../../../core/bases/BaseRepository";
 import { HealthRecord } from "../models/HealthRecord.model";
 import { MedicalCare } from "../models/MedicalCare.model";
@@ -9,42 +9,35 @@ import { Vaccine } from "../models/Vaccine.model";
 import { VaccineType } from "../models/VaccinType.model";
 
 export interface HealthRecordRepository extends BaseRepository<HealthRecord> {
-  getByAnimalId(animalId: string): Promise<HealthRecord | null>;
-  getByIdWithRelations(id: string): Promise<HealthRecord | null>;
+  getByAnimalId(animalId: string, withRelations?: boolean): Promise<HealthRecord | null>;
 }
 
 export const HealthRecordRepositoryImpl = (prisma: PrismaClient): HealthRecordRepository => {
+  const defaultInclude = {
+    medicalCares: {
+      where: { isDeleted: false },
+      include: {
+        tags: { where: { isDeleted: false }, include: { tag: true } },
+        vaccines: { where: { isDeleted: false }, include: { vaccine: { include: { vaccineType: true } } } },
+      },
+    },
+  };
+
   const base = BasePrismaRepository<HealthRecord, PrismaHealthRecordCreate, PrismaHealthRecordUpdate>({
     prisma,
     modelName: "healthRecord",
     mapper: HealthRecordMapper,
+    defaultInclude,
   });
 
   return {
     ...base,
 
-    async getByAnimalId(animalId: string): Promise<HealthRecord | null> {
+    async getByAnimalId(animalId: string, withRelations = false): Promise<HealthRecord | null> {
       const record = await prisma.healthRecord.findFirst({
         where: { animalId, isDeleted: false },
+        include: withRelations ? defaultInclude : undefined,
       });
-
-      return record ? HealthRecordMapper.toDomain(record) : null;
-    },
-
-    async getByIdWithRelations(id: string): Promise<HealthRecord | null> {
-      const record = await prisma.healthRecord.findUnique({
-        where: { id },
-        include: {
-          medicalCares: {
-            where: { isDeleted: false },
-            include: {
-              tags: { where: { isDeleted: false }, include: { tag: true } },
-              vaccines: { where: { isDeleted: false }, include: { vaccine: { include: { vaccineType: true } } } },
-            },
-          },
-        },
-      });
-
       return record ? HealthRecordMapper.toDomain(record) : null;
     },
   };
