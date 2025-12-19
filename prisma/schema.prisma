@@ -13,6 +13,8 @@ datasource db {
   provider = "postgresql"
 }
 
+// -----Core-----
+
 model Animal {
   // PK
   id String @id @default(uuid())
@@ -29,6 +31,7 @@ model Animal {
 
   // Relation
   animalOwners AnimalOwner[]
+  healthRecord HealthRecord?
 }
 
 model Owner {
@@ -75,6 +78,164 @@ model AnimalOwner {
 }
 
 model Veterinarian {
+  // PK
+  id String @id @default(uuid())
+
+  // Columns
+  first_name String
+  last_name String
+  email String @unique
+  phone String @unique
+  licenseNumber String @unique
+
+  // Audite
+  createdAt DateTime @default(now())
+  updatedAt DateTime?
+  isDeleted Boolean @default(false)
+
+  // Relation
+  medicalCares MedicalCare[]
+
+}
+
+// -----Health_Record-----
+
+model HealthRecord {
+  // PK
+  id String @id @default(uuid())
+
+  // Columns
+  description String
+  recordDate DateTime
+
+  // FK 
+  animalId String @unique
+
+  // Audit
+  createdAt DateTime @default(now())
+  updatedAt DateTime?
+  isDeleted Boolean @default(false)
+
+  // Relation
+  animal Animal @relation( fields: [animalId],references: [id], onDelete: Cascade )
+  medicalCares MedicalCare[]
+}
+
+model MedicalCare {
+  // PK
+  id String @id @default(uuid())
+
+  // Columns
+  type String
+  description String
+  careDate DateTime
+
+  // FK
+  healthRecordId String
+  veterinarianId String
+  vaccineId String?
+
+  // Audit 
+  createdAt DateTime @default(now())
+  updatedAt DateTime?
+  isDeleted Boolean @default(false)
+
+  // Relations
+  healthRecord HealthRecord @relation( fields: [healthRecordId], references: [id], onDelete: Cascade )
+  veterinarian Veterinarian @relation( fields: [veterinarianId], references: [id] )
+  vaccines MedicalCareVaccine[]
+  tags MedicalCareTag[]
+
+  @@index([healthRecordId])
+  @@index([veterinarianId])
+}
+
+model Tag {
+  // PK
+  id String @id @default(uuid())
+
+  // Columns
+  name String @unique
+
+  // Audit
+  createdAt DateTime @default(now())
+  updatedAt DateTime?
+  isDeleted Boolean @default(false)
+
+  // Relations
+  medicalCares MedicalCareTag[]
+}
+
+model MedicalCareTag {
+  // FK
+  medicalCareId String
+  tagId String
+
+  // Audit
+  createdAt DateTime @default(now())
+  updatedAt DateTime?
+  isDeleted Boolean @default(false)
+
+  // Relations
+  medicalCare MedicalCare @relation( fields: [medicalCareId], references: [id], onDelete: Cascade )
+  tag Tag @relation( fields: [tagId], references: [id] )
+
+  @@id([medicalCareId, tagId])
+}
+
+model MedicalCareVaccine {
+  // FK
+  medicalCareId String
+  vaccineId String
+
+  // Audit
+  createdAt DateTime @default(now())
+  updatedAt DateTime?
+  isDeleted Boolean @default(false)
+
+  // Relations
+  medicalCare MedicalCare @relation(fields: [medicalCareId], references: [id], onDelete: Cascade)
+  vaccine Vaccine @relation(fields: [vaccineId], references: [id])
+
+  @@id([medicalCareId, vaccineId])
+}
+
+model Vaccine {
+  // PK
+  id String @id @default(uuid())
+
+  // Columns
+  name String
+
+  //FK
+  vaccineTypeId String
+
+  // Audit
+  createdAt DateTime @default(now())
+  updatedAt DateTime?
+  isDeleted Boolean @default(false)
+
+  // Relations
+  vaccineType VaccineType @relation( fields: [vaccineTypeId], references: [id] )
+  medicalCares MedicalCareVaccine[]
+
+}
+
+model VaccineType {
+  // PK
+  id String @id @default(uuid())
+
+  // Columns
+  name String @unique
+
+  // Audit
+  createdAt DateTime @default(now())
+  updatedAt DateTime?
+  isDeleted Boolean @default(false)
+
+  // Relations
+  vaccines Vaccine[]
+}
   id            String @id @default(uuid())
   firstName     String
   lastName      String
