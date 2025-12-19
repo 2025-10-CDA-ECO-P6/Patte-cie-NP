@@ -1,3 +1,4 @@
+import createHttpError from "http-errors";
 import { PrismaClient } from "../../../generated/prisma/client";
 
 export interface BaseRepository<T> {
@@ -33,13 +34,14 @@ export const BasePrismaRepository = <TDomain, TCreate, TUpdate>(params: {
   const model: PrismaModel = (prisma as any)[modelName];
 
   return {
-    async getById(id: string, withRelations = false): Promise<TDomain | null> {
+    async getById(id: string, withRelations = false): Promise<TDomain> {
       const record = await model.findFirst({
         where: { id, isDeleted: false },
         include: withRelations ? defaultInclude : undefined,
       });
 
-      return record ? mapper.toDomain(record) : null;
+      if (!record) throw new createHttpError.NotFound(`${modelName.toString()} with id ${id} not found`);
+      return mapper.toDomain(record);
     },
 
     async getAll(withRelations = false): Promise<TDomain[]> {
@@ -52,31 +54,49 @@ export const BasePrismaRepository = <TDomain, TCreate, TUpdate>(params: {
     },
 
     async create(entity: TDomain, withRelations = false): Promise<TDomain> {
-      const record = await model.create({
-        data: mapper.toCreate(entity),
-        include: withRelations ? defaultInclude : undefined,
-      });
-
-      return mapper.toDomain(record);
+      try {
+        const record = await model.create({
+          data: mapper.toCreate(entity),
+          include: withRelations ? defaultInclude : undefined,
+        });
+        return mapper.toDomain(record);
+      } catch (err: any) {
+        throw new createHttpError.InternalServerError(`Failed to create ${modelName.toString()}: ${err.message}`);
+      }
     },
 
     async update(entity: TDomain, withRelations = false): Promise<TDomain> {
-      const data = mapper.toUpdate(entity);
+      const id = (entity as any).id;
+      try {
+        const record = await model.update({
+          where: { id },
+          data: mapper.toUpdate(entity),
+          include: withRelations ? defaultInclude : undefined,
+        });
 
-      const record = await model.update({
-        where: { id: (entity as any).id },
-        data,
-        include: withRelations ? defaultInclude : undefined,
-      });
-
-      return mapper.toDomain(record);
+        if (!record) throw new createHttpError.NotFound(`${modelName.toString()} with id ${id} not found`);
+        return mapper.toDomain(record);
+      } catch (err: any) {
+        if (err.code === "P2025") {
+          throw new createHttpError.NotFound(`${modelName.toString()} with id ${id} not found`);
+        }
+        throw new createHttpError.InternalServerError(`Failed to update ${modelName.toString()}: ${err.message}`);
+      }
     },
 
     async delete(id: string): Promise<void> {
-      await model.update({
-        where: { id },
-        data: { isDeleted: true, updatedAt: new Date() },
-      });
+      try {
+        const record = await model.update({
+          where: { id },
+          data: { isDeleted: true, updatedAt: new Date() },
+        });
+        if (!record) throw new createHttpError.NotFound(`${modelName.toString()} with id ${id} not found`);
+      } catch (err: any) {
+        if (err.code === "P2025") {
+          throw new createHttpError.NotFound(`${modelName.toString()} with id ${id} not found`);
+        }
+        throw new createHttpError.InternalServerError(`Failed to delete ${modelName.toString()}: ${err.message}`);
+      }
     },
   };
 };

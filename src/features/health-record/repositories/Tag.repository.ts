@@ -1,3 +1,4 @@
+import createHttpError from "http-errors";
 import { PrismaClient } from "../../../../generated/prisma/client";
 import { BaseRepository, BasePrismaRepository } from "../../../core/bases/BaseRepository";
 import { Tag } from "../models/Tag.model";
@@ -16,12 +17,17 @@ export const TagRepositoryImpl = (prisma: PrismaClient): TagRepository => {
   return {
     ...base,
 
-    async getByName(name: string, withRelations = false): Promise<Tag | null> {
+    async getByName(name: string, withRelations = false): Promise<Tag> {
       const record = await prisma.tag.findFirst({
         where: { name, isDeleted: false },
         include: withRelations ? {} : undefined,
       });
-      return record ? TagMapper.toDomain(record) : null;
+
+      if (!record) {
+        throw new createHttpError.NotFound(`Tag with name "${name}" not found`);
+      }
+
+      return TagMapper.toDomain(record);
     },
   };
 };

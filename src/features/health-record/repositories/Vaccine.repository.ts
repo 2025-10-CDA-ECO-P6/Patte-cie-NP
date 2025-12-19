@@ -1,3 +1,4 @@
+import createHttpError from "http-errors";
 import { PrismaClient } from "../../../../generated/prisma/client";
 import { BaseRepository, BasePrismaRepository } from "../../../core/bases/BaseRepository";
 import { Vaccine } from "../models/Vaccine.model";
@@ -25,6 +26,10 @@ export const VaccineRepositoryImpl = (prisma: PrismaClient): VaccineRepository =
         where: { vaccineTypeId, isDeleted: false },
         include: withRelations ? defaultInclude : undefined,
       });
+
+      if (!records || records.length === 0) {
+        throw new createHttpError.NotFound(`No vaccines found for vaccineTypeId ${vaccineTypeId}`);
+      }
 
       return records.map(VaccineMapper.toDomain);
     },
