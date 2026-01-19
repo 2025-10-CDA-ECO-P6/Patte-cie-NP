@@ -22,7 +22,6 @@ export const HealthRecordServiceImpl = (repository: HealthRecordRepository): Hea
       id: mc.id,
       healthRecordId: mc.healthRecordId,
       veterinarianId: mc.veterinarianId,
-      type: mc.type,
       description: mc.description,
       careDate: mc.careDate,
       tags: mc.tags.map((t) => ({ id: t.tagId, name: t.tag?.name })),
@@ -83,7 +82,6 @@ export const HealthRecordServiceImpl = (repository: HealthRecordRepository): Hea
         id: crypto.randomUUID(),
         healthRecordId: hr.id,
         veterinarianId: dto.veterinarianId,
-        type: dto.type,
         description: dto.description,
         careDate: dto.careDate,
         createdAt: new Date(),
@@ -194,9 +192,6 @@ const validateHealthRecordResponse = (dto: HealthRecordResponseDTO) => {
     dto.medicalCares.forEach((mc) => {
       if (!mc.id || typeof mc.id !== "string") {
         throw new createHttpError.InternalServerError("MedicalCare id is invalid");
-      }
-      if (!mc.type || typeof mc.type !== "string") {
-        throw new createHttpError.InternalServerError("MedicalCare type is invalid");
       }
       if (!mc.description || typeof mc.description !== "string" || mc.description.trim().length < 3) {
         throw new createHttpError.InternalServerError("MedicalCare description is invalid");

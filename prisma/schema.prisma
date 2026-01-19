@@ -76,15 +76,17 @@ model AnimalOwner {
 }
 
 model Veterinarian {
+  // PK
   id            String @id @default(uuid())
+
+  // Columns
   firstName     String
   lastName      String
   email         String @unique
-  phone         String @unique
+  phone         Int @unique
   licenseNumber String @unique
 
   // Audite
-
   createdAt DateTime  @default(now())
   updatedAt DateTime?
   isDeleted Boolean   @default(false)
@@ -94,12 +96,14 @@ model Veterinarian {
 }
 
 model User {
+  // PK
   id       String @id @default(uuid())
+
+  // Columns
   email    String @unique
   password String
 
   // FK
-
   roleId String
 
   // Audite
@@ -114,11 +118,13 @@ model User {
 }
 
 model Role {
+  // PK
   id       String @id @default(uuid())
+
+  // Columns
   roleName String @unique
 
   // Audite
-
   createdAt DateTime  @default(now())
   updatedAt DateTime?
   isDeleted Boolean   @default(false)
@@ -128,12 +134,17 @@ model Role {
 }
 
 model RefreshToken {
+  // PK
   id        String   @id @default(uuid())
+
+  // Columns
   token     String   @unique
   expiresAt DateTime
 
   // FK
   userId String
+
+  // relation
   user   User   @relation(fields: [userId], references: [id])
 
   // Audit
@@ -168,14 +179,12 @@ model MedicalCare {
   id String @id @default(uuid())
 
   // Columns
-  type        String
   description String
   careDate    DateTime
 
   // FK
   healthRecordId String
   veterinarianId String
-  vaccineId      String?
 
   // Audit 
   createdAt DateTime  @default(now())

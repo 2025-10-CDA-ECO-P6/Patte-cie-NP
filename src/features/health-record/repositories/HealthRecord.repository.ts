@@ -71,7 +71,6 @@ export const HealthRecordMapper = {
             id: mc.id,
             healthRecordId: mc.healthRecordId,
             veterinarianId: mc.veterinarianId,
-            type: mc.type,
             description: mc.description,
             careDate: mc.careDate,
             createdAt: mc.createdAt,
