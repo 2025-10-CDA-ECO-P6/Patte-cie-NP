@@ -1,5 +1,5 @@
 import { AuditedBaseEntity } from "../../../core/bases/BaseModel";
-import { Veterinarian } from "../../../core/models/veterinarian.model";
+import { Veterinarian } from "../../common/models/veterinarian.model";
 import { HealthRecord } from "./HealthRecord.model";
 import { MedicalCareTag } from "./MedicalCareTag";
 import { MedicalCareVaccine } from "./MedicalCareVaccine.model";
