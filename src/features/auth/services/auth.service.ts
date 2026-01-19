@@ -58,6 +58,43 @@ export const AuthService = {
         };
     },
 
+    async register(email: string, password: string) {
+
+        // Vérifie si l'email existe 
+        const existing = await prisma.user.findUnique({
+            where: { email },
+        });
+
+        if (existing) {
+            throw new Error("Email already used");
+        }
+
+        // Récupère le rôle par défaut
+        const defaultRole = await prisma.role.findUnique({
+            where: { roleName: "OWNER" },
+        });
+
+        if (!defaultRole) {
+            throw new Error("Default role not found in database");
+        }
+
+        // Hash du mdp
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        const user = await prisma.user.create({
+            data: {
+                email,
+                password: hashedPassword,
+                roleId: defaultRole.id,
+            },
+        });
+
+        return {
+            id: user.id,
+            email: user.email,
+        };
+    },
+
     async refresh(refreshToken: string): Promise<string> {
 
         // Vérification du refresh token
@@ -81,7 +118,7 @@ export const AuthService = {
             throw new Error("Invalid refresh token");
         }
 
-        // Création d'un nouveau token d'accès
+        // Création d'un nouveau token 
         const newAccessToken = jwt.sign(
             {
                 sub: storedToken.userId,
