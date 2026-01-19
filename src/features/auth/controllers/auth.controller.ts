@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { AuthService } from "../services/auth.service";
+import { prisma } from "../../../../lib/prisma";
 
 export const AuthController = {
     async login(req: Request, res: Response) {
@@ -16,6 +17,7 @@ export const AuthController = {
             res.cookie("access_token", accessToken, {
                 httpOnly: true, // inaccessible via le front
                 sameSite: "strict", // protection CSRF 
+                path: "/",
             });
 
             res.cookie("refresh_token", refreshToken, {
@@ -29,12 +31,41 @@ export const AuthController = {
             res.status(401).json({ message: "Invalid credentials" });
         }
     },
-    async logout(_req: Request, res: Response) {
-        res.clearCookie("access_token", {
-            httpOnly: true,
-            sameSite: "strict",
-        });
+    async refresh(req: Request, res: Response) {
+        try {
+            const refreshToken = req.cookies.refresh_token;
 
+            if (!refreshToken) {
+                return res.status(401).json({ message: "Missing refresh token" });
+            }
+
+            const newAccessToken = await AuthService.refresh(refreshToken);
+
+            res.cookie("access_token", newAccessToken, {
+                httpOnly: true,
+                sameSite: "strict",
+                path: "/",
+            });
+
+            res.json({ message: "Token refreshed" });
+        } catch {
+            res.status(401).json({ message: "Invalid refresh token" });
+        }
+    },
+
+    async logout(req: Request, res: Response) {
+        const refreshToken = req.cookies.refresh_token;
+
+        if (refreshToken) {
+            // Supprime le refresh token de la BDD
+            await prisma.refreshToken.deleteMany({
+                where: { token: refreshToken },
+            });
+        }
+
+        // Supprime les cookies
+        res.clearCookie("access_token", { path: "/" });
+        res.clearCookie("refresh_token", { path: "/auth/refresh" })
         return res.status(204).send();
     },
 };
