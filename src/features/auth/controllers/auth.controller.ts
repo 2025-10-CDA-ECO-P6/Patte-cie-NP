@@ -31,6 +31,22 @@ export const AuthController = {
             res.status(401).json({ message: "Invalid credentials" });
         }
     },
+
+    async register(req: Request, res: Response) {
+        try {
+            const { email, password } = req.body;
+
+            if (!email || !password) {
+                return res.status(400).json({ message: "Missing email or password" });
+            }
+
+            const user = await AuthService.register(email, password);
+            return res.status(201).json(user);
+        } catch (err: any) {
+            return res.status(400).json({ message: err.message });
+        }
+    },
+
     async refresh(req: Request, res: Response) {
         try {
             const refreshToken = req.cookies.refresh_token;
