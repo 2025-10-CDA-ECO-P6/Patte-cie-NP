@@ -57,4 +57,41 @@ export const AuthService = {
             refreshToken,
         };
     },
+
+    async refresh(refreshToken: string): Promise<string> {
+
+        // Vérification du refresh token
+        const storedToken = await prisma.refreshToken.findUnique({
+            where: { token: refreshToken },
+        });
+
+        if (!storedToken) {
+            throw new Error("Invalid refresh token");
+        }
+
+        // Vérification de l'expiration
+        if (storedToken.expiresAt < new Date()) {
+            throw new Error("Refresh token expired");
+        }
+
+        // Vérification de la signature
+        try {
+            jwt.verify(refreshToken, config.jwtRefreshSecret);
+        } catch {
+            throw new Error("Invalid refresh token");
+        }
+
+        // Création d'un nouveau token d'accès
+        const newAccessToken = jwt.sign(
+            {
+                sub: storedToken.userId,
+            },
+            config.jwtSecret,
+            {
+                expiresIn: "15m",
+            }
+        );
+
+        return newAccessToken;
+    },
 };
