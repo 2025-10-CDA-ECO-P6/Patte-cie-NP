@@ -23,7 +23,7 @@ export const AuthController = {
             res.cookie("refresh_token", refreshToken, {
                 httpOnly: true,
                 sameSite: "strict",
-                path: "/auth/refresh-token",
+                path: "/auth/refresh",
             });
 
             res.json({ message: "Logged in" });
