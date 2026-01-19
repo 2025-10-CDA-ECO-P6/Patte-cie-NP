@@ -10,12 +10,18 @@ export const AuthController = {
                 return res.status(400).json({ message: "Missing credentials" });
             }
 
-            const token = await AuthService.login(email, password);
+            const { accessToken, refreshToken } = await AuthService.login(email, password);
 
             // stockage du token dans un cookie HttpOnly
-            res.cookie("access_token", token, {
+            res.cookie("access_token", accessToken, {
                 httpOnly: true, // inaccessible via le front
                 sameSite: "strict", // protection CSRF 
+            });
+
+            res.cookie("refresh_token", refreshToken, {
+                httpOnly: true,
+                sameSite: "strict",
+                path: "/auth/refresh-token",
             });
 
             res.json({ message: "Logged in" });
