@@ -1,4 +1,4 @@
-import { PrismaClient, Veterinarian as PrismaVeterinarian } from "../../../generated/prisma/client";
+import { PrismaClient, Veterinarian as PrismaVeterinarian } from "../../../../generated/prisma/client";
 import { Veterinarian } from "../models/veterinarian.model";
 
 export interface VeterinarianRepository {

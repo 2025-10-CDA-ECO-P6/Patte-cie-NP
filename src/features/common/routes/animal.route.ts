@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { prisma } from "../../../lib/prisma";
+import { prisma } from "../../../../lib/prisma";
 import { AnimalController } from "../controllers/animal.controller";
 import { AnimalOwnerRepositoryImpl } from "../repositories/animal-owner.repository";
 import { AnimalRepositoryImpl } from "../repositories/animal.repository";

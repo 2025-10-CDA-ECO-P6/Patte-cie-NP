@@ -1,5 +1,6 @@
 import { Router } from "express";
-import coreRoutes from "./core/routes";
+
+import coreRoutes from "./features/common/routes";
 import moduleHealthRecordRoutes from "./features/health-record/routes";
 import authRoutes from "./features/auth/routes";
 

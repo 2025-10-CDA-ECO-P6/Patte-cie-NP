@@ -53,7 +53,6 @@ export const MedicalCareMapper = {
       id: record.id,
       healthRecordId: record.healthRecordId,
       veterinarianId: record.veterinarianId,
-      type: record.type,
       description: record.description,
       careDate: record.careDate,
       createdAt: record.createdAt,
@@ -117,7 +116,6 @@ export const MedicalCareMapper = {
       id: entity.id,
       healthRecordId: entity.healthRecordId,
       veterinarianId: entity.veterinarianId,
-      type: entity.type,
       description: entity.description,
       careDate: entity.careDate,
       createdAt: entity.createdAt,
@@ -149,7 +147,6 @@ export const MedicalCareMapper = {
       }));
 
     return {
-      type: entity.type,
       description: entity.description,
       careDate: entity.careDate,
       updatedAt: new Date(),

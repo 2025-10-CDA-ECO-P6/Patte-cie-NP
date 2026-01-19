@@ -25,7 +25,6 @@ export const MedicalCareServiceImpl = (
       id: mc.id,
       healthRecordId: mc.healthRecordId,
       veterinarianId: mc.veterinarianId,
-      type: mc.type,
       description: mc.description,
       careDate: mc.careDate,
       tags: mc.tags.map((t) => ({ id: t.tagId, name: t.tag?.name })),
@@ -41,7 +40,6 @@ export const MedicalCareServiceImpl = (
       id: crypto.randomUUID(),
       healthRecordId: dto.healthRecordId,
       veterinarianId: dto.veterinarianId,
-      type: dto.type,
       description: dto.description,
       careDate: dto.careDate,
       createdAt: new Date(),
@@ -51,7 +49,6 @@ export const MedicalCareServiceImpl = (
 
   const updateDomain = (existing: MedicalCare, dto: MedicalCareUpdateDTO): MedicalCare => {
     validateMedicalCareInput(dto);
-    existing.setType(dto.type);
     existing.setDescription(dto.description);
     existing.setCareDate(dto.careDate);
     return existing;
@@ -133,7 +130,6 @@ export interface MedicalCareResponseDTO {
   id: string;
   healthRecordId: string;
   veterinarianId: string;
-  type: string;
   description: string;
   careDate: Date;
   tags: { id: string; name?: string }[];
@@ -143,7 +139,6 @@ export interface MedicalCareResponseDTO {
 export interface MedicalCareCreateDTO {
   healthRecordId: string;
   veterinarianId: string;
-  type: string;
   description: string;
   careDate: Date;
   tags?: Tag[];
@@ -168,9 +163,6 @@ const validateMedicalCareInput = (dto: MedicalCareCreateDTO | MedicalCareUpdateD
   }
   if (!dto.veterinarianId || typeof dto.veterinarianId !== "string") {
     throw new createHttpError.BadRequest("veterinarianId is required and must be a string");
-  }
-  if (!dto.type || typeof dto.type !== "string") {
-    throw new createHttpError.BadRequest("type is required and must be a string");
   }
   if (!dto.description || typeof dto.description !== "string") {
     throw new createHttpError.BadRequest("description is required and must be a string");
@@ -198,8 +190,6 @@ const validateMedicalCareResponse = (dto: MedicalCareResponseDTO) => {
     throw new createHttpError.InternalServerError("Response healthRecordId is invalid");
   if (!dto.veterinarianId || typeof dto.veterinarianId !== "string")
     throw new createHttpError.InternalServerError("Response veterinarianId is invalid");
-  if (!dto.type || typeof dto.type !== "string")
-    throw new createHttpError.InternalServerError("Response type is invalid");
   if (!dto.careDate || !(dto.careDate instanceof Date))
     throw new createHttpError.InternalServerError("Response careDate is invalid");
 
