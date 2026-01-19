@@ -4,7 +4,7 @@ import { prisma } from "../../../../lib/prisma";
 import config from "../../../.config/config";
 
 export const AuthService = {
-    async login(email: string, password: string) {
+    async login(email: string, password: string): Promise<{ accessToken: string; refreshToken: string }> {
 
         const user = await prisma.user.findUnique({
             where: { email },
