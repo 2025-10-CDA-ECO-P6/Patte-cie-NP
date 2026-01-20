@@ -3,17 +3,32 @@ import { User } from "../models/User.model";
 
 export interface UserRepository {
     getById(id: string): Promise<User | null>;
+    getAll(): Promise<User[]>;
     getByEmail(email: string): Promise<User | null>;
     create(user: User): Promise<User>;
+    update(user: User): Promise<User>;
+    delete(id: string): Promise<void>;
 }
 
-export const UserRepositoryImpl = (prisma: PrismaClient): UserRepository => ({
+export const UserRepositoryImpl = (
+    prisma: PrismaClient
+): UserRepository => ({
     async getById(id: string): Promise<User | null> {
         const record = await prisma.user.findUnique({
-            where: { id, isDeleted: false },
+            where: { id },
         });
 
-        return record ? toDomainUser(record) : null;
+        if (!record || record.isDeleted) return null;
+
+        return toDomainUser(record);
+    },
+
+    async getAll(): Promise<User[]> {
+        const records = await prisma.user.findMany({
+            where: { isDeleted: false },
+        });
+
+        return records.map(toDomainUser);
     },
 
     async getByEmail(email: string): Promise<User | null> {
@@ -21,7 +36,9 @@ export const UserRepositoryImpl = (prisma: PrismaClient): UserRepository => ({
             where: { email },
         });
 
-        return record ? toDomainUser(record) : null;
+        if (!record || record.isDeleted) return null;
+
+        return toDomainUser(record);
     },
 
     async create(user: User): Promise<User> {
@@ -32,11 +49,36 @@ export const UserRepositoryImpl = (prisma: PrismaClient): UserRepository => ({
                 password: user.password,
                 roleId: user.roleId,
                 createdAt: user.createdAt,
-                isDeleted: user.isDeleted,
+                isDeleted: user.deleted,
             },
         });
 
         return toDomainUser(record);
+    },
+
+    async update(user: User): Promise<User> {
+        const record = await prisma.user.update({
+            where: { id: user.id },
+            data: {
+                email: user.email,
+                password: user.password,
+                roleId: user.roleId,
+                updatedAt: new Date(),
+                isDeleted: user.deleted,
+            },
+        });
+
+        return toDomainUser(record);
+    },
+
+    async delete(id: string): Promise<void> {
+        await prisma.user.update({
+            where: { id },
+            data: {
+                isDeleted: true,
+                updatedAt: new Date(),
+            },
+        });
     },
 });
 
