@@ -26,4 +26,8 @@ export class User {
         this.updatedAt = props.updatedAt;
         this.isDeleted = props.isDeleted;
     }
+
+    get deleted(): boolean {
+        return this.isDeleted;
+    }
 }
