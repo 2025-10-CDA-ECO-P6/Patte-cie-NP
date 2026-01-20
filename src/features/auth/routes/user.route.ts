@@ -11,7 +11,6 @@ const userRepository = UserRepositoryImpl(prisma);
 const userService = UserServiceImpl(userRepository);
 const userController = UserController(userService);
 
-// Routes protégées
 router.get("/users", authenticationMiddleware, userController.getAll);
 router.get("/users/:id", authenticationMiddleware, userController.getById);
 router.post("/users", authenticationMiddleware, userController.create);
