@@ -50,6 +50,7 @@ model Owner {
 
   // Relation
   animalOwners AnimalOwner[]
+  userProfiles UserProfile?
 }
 
 model AnimalOwner {
@@ -70,7 +71,6 @@ model AnimalOwner {
   isDeleted Boolean   @default(false)
 
   // Relation
-
   animal Animal @relation(fields: [animalId], references: [id])
   owner  Owner  @relation(fields: [ownerId], references: [id])
 }
@@ -93,7 +93,11 @@ model Veterinarian {
 
   // Relation
   medicalCares MedicalCare[]
+  userProfiles UserProfile?
 }
+
+// -----AUTH-----
+
 
 model User {
   // PK
@@ -115,6 +119,25 @@ model User {
   // relation
   role          Role           @relation(fields: [roleId], references: [id])
   refreshTokens RefreshToken[]
+  profile UserProfile?
+}
+
+model UserProfile {
+  id String @id @default(uuid())
+
+  // FK Auth
+  userId String @unique
+
+  // FK Common (optionnelles mais exclusives)
+  ownerId        String? @unique
+  veterinarianId String? @unique
+
+  createdAt DateTime @default(now())
+
+  // Relations (auth → common OK)
+  user         User         @relation(fields: [userId], references: [id])
+  owner        Owner?       @relation(fields: [ownerId], references: [id])
+  veterinarian Veterinarian? @relation(fields: [veterinarianId], references: [id])
 }
 
 model Role {
