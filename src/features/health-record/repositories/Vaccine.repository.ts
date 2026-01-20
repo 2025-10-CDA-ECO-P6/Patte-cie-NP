@@ -3,6 +3,7 @@ import { BaseRepository, BasePrismaRepository } from "../../../core/bases/BaseRe
 import { Vaccine } from "../models/Vaccine.model";
 import { VaccineType } from "../models/VaccinType.model";
 
+
 export interface VaccineRepository extends BaseRepository<Vaccine> {
   getByVaccineTypeId(vaccineTypeId: string, withRelations?: boolean): Promise<Vaccine[]>;
 }
@@ -36,7 +37,11 @@ export const VaccineMapper = {
     return new Vaccine({
       id: record.id,
       vaccineTypeId: record.vaccineTypeId,
-      name: record.name,
+      administrationDate: record.administrationDate,
+      expirationDate: record.expirationDate,
+      batchNumber: record.batchNumber,
+      doseNumber: record.doseNumber,
+      notes: record.notes,
       createdAt: record.createdAt,
       updatedAt: record.updatedAt ?? undefined,
       isDeleted: record.isDeleted,
@@ -44,6 +49,8 @@ export const VaccineMapper = {
         ? new VaccineType({
             id: record.vaccineType.id,
             name: record.vaccineType.name,
+            defaultValidityDays: record.vaccineType.defaultValidityDays,
+            notes: record.vaccineType.notes,
             createdAt: record.vaccineType.createdAt,
             updatedAt: record.vaccineType.updatedAt ?? undefined,
             isDeleted: record.vaccineType.isDeleted,
@@ -56,18 +63,26 @@ export const VaccineMapper = {
     return {
       id: entity.id,
       vaccineTypeId: entity.vaccineTypeId,
-      name: entity.name,
+      administrationDate: entity.administrationDate,
+      expirationDate: entity.expirationDate,
+      batchNumber: entity.batchNumber,
+      doseNumber: entity.doseNumber,
+      notes: entity.notes,
       createdAt: entity.createdAt,
-      isDeleted: entity.deleted,
+      isDeleted: entity.deleted, // utilise le getter public
     };
   },
 
   toUpdate(entity: Vaccine) {
     return {
       vaccineTypeId: entity.vaccineTypeId,
-      name: entity.name,
+      administrationDate: entity.administrationDate,
+      expirationDate: entity.expirationDate,
+      batchNumber: entity.batchNumber,
+      doseNumber: entity.doseNumber,
+      notes: entity.notes,
       updatedAt: new Date(),
-      isDeleted: entity.deleted,
+      isDeleted: entity.deleted, // utilise le getter public
     };
   },
 };

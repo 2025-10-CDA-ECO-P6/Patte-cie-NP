@@ -5,8 +5,12 @@ import { MedicalCare } from "../models/MedicalCare.model";
 import { HealthRecordRepository } from "../repositories/HealthRecord.repository";
 import { MedicalCareResponseDTO } from "./MedicalCareApi.service";
 
-export interface HealthRecordService
-  extends BaseApiService<HealthRecord, HealthRecordCreateDTO, HealthRecordUpdateDTO, HealthRecordResponseDTO> {
+export interface HealthRecordService extends BaseApiService<
+  HealthRecord,
+  HealthRecordCreateDTO,
+  HealthRecordUpdateDTO,
+  HealthRecordResponseDTO
+> {
   getByAnimalId(animalId: string): Promise<HealthRecordResponseDTO>;
   addMedicalCare(healthRecordId: string, dto: AddMedicalCareDTO): Promise<HealthRecordResponseDTO>;
   removeMedicalCare(healthRecordId: string, medicalCareId: string): Promise<HealthRecordResponseDTO>;
@@ -25,7 +29,22 @@ export const HealthRecordServiceImpl = (repository: HealthRecordRepository): Hea
       description: mc.description,
       careDate: mc.careDate,
       tags: mc.tags.map((t) => ({ id: t.tagId, name: t.tag?.name })),
-      vaccines: mc.vaccines.map((v) => ({ id: v.vaccineId, name: v.vaccine?.name })),
+      vaccines: mc.vaccines.map((v) => ({
+        id: v.vaccineId,
+        administrationDate: v.vaccine?.administrationDate!,
+        expirationDate: v.vaccine?.expirationDate,
+        batchNumber: v.vaccine?.batchNumber,
+        doseNumber: v.vaccine?.doseNumber,
+        notes: v.vaccine?.notes,
+        vaccineType: v.vaccine?.vaccineType
+          ? {
+              id: v.vaccine.vaccineType.id,
+              name: v.vaccine.vaccineType.name,
+              defaultValidityDays: v.vaccine.vaccineType.defaultValidityDays,
+              notes: v.vaccine.vaccineType.notes,
+            }
+          : undefined,
+      })),
     })),
   });
 
@@ -53,7 +72,7 @@ export const HealthRecordServiceImpl = (repository: HealthRecordRepository): Hea
     createDomain,
     updateDomain,
     validateHealthRecordInput,
-    validateHealthRecordResponse
+    validateHealthRecordResponse,
   );
 
   return {
@@ -120,14 +139,7 @@ export const HealthRecordServiceImpl = (repository: HealthRecordRepository): Hea
   };
 };
 
-export interface HealthRecordResponseDTO {
-  id: string;
-  animalId: string;
-  description: string;
-  recordDate: Date;
-  medicalCares?: MedicalCareResponseDTO[];
-}
-
+// DTOs
 export interface HealthRecordCreateDTO {
   animalId: string;
   description: string;
@@ -138,13 +150,21 @@ export interface HealthRecordUpdateDTO extends HealthRecordCreateDTO {
   id: string;
 }
 
+export interface HealthRecordResponseDTO {
+  id: string;
+  animalId: string;
+  description: string;
+  recordDate: Date;
+  medicalCares?: MedicalCareResponseDTO[];
+}
+
 export interface AddMedicalCareDTO {
   veterinarianId: string;
-  type: string;
   description: string;
   careDate: Date;
 }
 
+// Validations
 const validateHealthRecordInput = (dto: HealthRecordCreateDTO | HealthRecordUpdateDTO) => {
   if (!dto.animalId || typeof dto.animalId !== "string") {
     throw new createHttpError.BadRequest("animalId is required and must be a string");
@@ -163,9 +183,6 @@ const validateHealthRecordInput = (dto: HealthRecordCreateDTO | HealthRecordUpda
 const validateMedicalCareInput = (dto: AddMedicalCareDTO) => {
   if (!dto.veterinarianId || typeof dto.veterinarianId !== "string") {
     throw new createHttpError.BadRequest("veterinarianId is required and must be a string");
-  }
-  if (!dto.type || typeof dto.type !== "string") {
-    throw new createHttpError.BadRequest("type is required and must be a string");
   }
   if (!dto.description || typeof dto.description !== "string" || dto.description.trim().length < 3) {
     throw new createHttpError.BadRequest("description must be a string with at least 3 characters");

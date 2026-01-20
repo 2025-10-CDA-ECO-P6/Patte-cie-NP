@@ -7,8 +7,12 @@ import { MedicalCareRepository } from "../repositories/MedicalCare.repository";
 import { TagRepository } from "../repositories/Tag.repository";
 import { VaccineRepository } from "../repositories/Vaccine.repository";
 
-export interface MedicalCareService
-  extends BaseApiService<MedicalCare, MedicalCareCreateDTO, MedicalCareUpdateDTO, MedicalCareResponseDTO> {
+export interface MedicalCareService extends BaseApiService<
+  MedicalCare,
+  MedicalCareCreateDTO,
+  MedicalCareUpdateDTO,
+  MedicalCareResponseDTO
+> {
   addTag(medicalCareId: string, dto: AddTagDTO): Promise<MedicalCareResponseDTO>;
   removeTag(medicalCareId: string, tagId: string): Promise<MedicalCareResponseDTO>;
   addVaccine(medicalCareId: string, dto: AddVaccineDTO): Promise<MedicalCareResponseDTO>;
@@ -18,21 +22,32 @@ export interface MedicalCareService
 export const MedicalCareServiceImpl = (
   repository: MedicalCareRepository,
   tagRepository: TagRepository,
-  vaccineRepository: VaccineRepository
+  vaccineRepository: VaccineRepository,
 ): MedicalCareService => {
-  const toResponseDTO = (mc: MedicalCare): MedicalCareResponseDTO => {
-    const dto: MedicalCareResponseDTO = {
-      id: mc.id,
-      healthRecordId: mc.healthRecordId,
-      veterinarianId: mc.veterinarianId,
-      description: mc.description,
-      careDate: mc.careDate,
-      tags: mc.tags.map((t) => ({ id: t.tagId, name: t.tag?.name })),
-      vaccines: mc.vaccines.map((v) => ({ id: v.vaccineId, name: v.vaccine?.name })),
-    };
-    validateMedicalCareResponse(dto);
-    return dto;
-  };
+  const toResponseDTO = (mc: MedicalCare): MedicalCareResponseDTO => ({
+    id: mc.id,
+    healthRecordId: mc.healthRecordId,
+    veterinarianId: mc.veterinarianId,
+    description: mc.description,
+    careDate: mc.careDate,
+    tags: mc.tags.map((t) => ({ id: t.tagId, name: t.tag?.name })),
+    vaccines: mc.vaccines.map((v) => ({
+      id: v.vaccineId,
+      administrationDate: v.vaccine?.administrationDate!,
+      expirationDate: v.vaccine?.expirationDate,
+      batchNumber: v.vaccine?.batchNumber,
+      doseNumber: v.vaccine?.doseNumber,
+      notes: v.vaccine?.notes,
+      vaccineType: v.vaccine?.vaccineType
+        ? {
+            id: v.vaccine.vaccineType.id,
+            name: v.vaccine.vaccineType.name,
+            defaultValidityDays: v.vaccine.vaccineType.defaultValidityDays,
+            notes: v.vaccine.vaccineType.notes,
+          }
+        : undefined,
+    })),
+  });
 
   const createDomain = (dto: MedicalCareCreateDTO): MedicalCare => {
     validateMedicalCareInput(dto);
@@ -60,7 +75,7 @@ export const MedicalCareServiceImpl = (
     createDomain,
     updateDomain,
     validateMedicalCareInput,
-    validateMedicalCareResponse
+    validateMedicalCareResponse,
   );
 
   return {
@@ -68,7 +83,6 @@ export const MedicalCareServiceImpl = (
 
     async addTag(medicalCareId: string, dto: AddTagDTO) {
       validateAddTagInput(dto);
-
       const mc = await repository.getById(medicalCareId, true);
       if (!mc) throw new createHttpError.NotFound(`MedicalCare with id ${medicalCareId} not found`);
 
@@ -76,10 +90,8 @@ export const MedicalCareServiceImpl = (
       if (!tag) throw new createHttpError.NotFound(`Tag with id ${dto.tagId} not found`);
 
       mc.addTag(tag);
-
       const saved = await repository.update(mc, true);
       if (!saved) throw new createHttpError.InternalServerError(`Failed to update MedicalCare with id ${mc.id}`);
-
       return toResponseDTO(saved);
     },
 
@@ -88,16 +100,13 @@ export const MedicalCareServiceImpl = (
       if (!mc) throw new createHttpError.NotFound(`MedicalCare with id ${medicalCareId} not found`);
 
       mc.removeTag(tagId);
-
       const saved = await repository.update(mc, true);
       if (!saved) throw new createHttpError.InternalServerError(`Failed to update MedicalCare with id ${mc.id}`);
-
       return toResponseDTO(saved);
     },
 
     async addVaccine(medicalCareId: string, dto: AddVaccineDTO) {
       validateAddVaccineInput(dto);
-
       const mc = await repository.getById(medicalCareId, true);
       if (!mc) throw new createHttpError.NotFound(`MedicalCare with id ${medicalCareId} not found`);
 
@@ -105,10 +114,8 @@ export const MedicalCareServiceImpl = (
       if (!vaccine) throw new createHttpError.NotFound(`Vaccine with id ${dto.vaccineId} not found`);
 
       mc.addVaccine(vaccine);
-
       const saved = await repository.update(mc, true);
       if (!saved) throw new createHttpError.InternalServerError(`Failed to update MedicalCare with id ${mc.id}`);
-
       return toResponseDTO(saved);
     },
 
@@ -117,25 +124,14 @@ export const MedicalCareServiceImpl = (
       if (!mc) throw new createHttpError.NotFound(`MedicalCare with id ${medicalCareId} not found`);
 
       mc.removeVaccine(vaccineId);
-
       const saved = await repository.update(mc, true);
       if (!saved) throw new createHttpError.InternalServerError(`Failed to update MedicalCare with id ${mc.id}`);
-
       return toResponseDTO(saved);
     },
   };
 };
 
-export interface MedicalCareResponseDTO {
-  id: string;
-  healthRecordId: string;
-  veterinarianId: string;
-  description: string;
-  careDate: Date;
-  tags: { id: string; name?: string }[];
-  vaccines: { id: string; name?: string }[];
-}
-
+// DTOs
 export interface MedicalCareCreateDTO {
   healthRecordId: string;
   veterinarianId: string;
@@ -149,6 +145,29 @@ export interface MedicalCareUpdateDTO extends MedicalCareCreateDTO {
   id: string;
 }
 
+export interface MedicalCareResponseDTO {
+  id: string;
+  healthRecordId: string;
+  veterinarianId: string;
+  description: string;
+  careDate: Date;
+  tags: { id: string; name?: string }[];
+  vaccines: {
+    id: string;
+    administrationDate: Date;
+    expirationDate?: Date;
+    batchNumber?: string;
+    doseNumber?: number;
+    notes?: string;
+    vaccineType?: {
+      id: string;
+      name: string;
+      defaultValidityDays?: number;
+      notes?: string;
+    };
+  }[];
+}
+
 export interface AddTagDTO {
   tagId: string;
 }
@@ -158,30 +177,24 @@ export interface AddVaccineDTO {
 }
 
 const validateMedicalCareInput = (dto: MedicalCareCreateDTO | MedicalCareUpdateDTO) => {
-  if (!dto.healthRecordId || typeof dto.healthRecordId !== "string") {
+  if (!dto.healthRecordId || typeof dto.healthRecordId !== "string")
     throw new createHttpError.BadRequest("healthRecordId is required and must be a string");
-  }
-  if (!dto.veterinarianId || typeof dto.veterinarianId !== "string") {
+  if (!dto.veterinarianId || typeof dto.veterinarianId !== "string")
     throw new createHttpError.BadRequest("veterinarianId is required and must be a string");
-  }
-  if (!dto.description || typeof dto.description !== "string") {
+  if (!dto.description || typeof dto.description !== "string")
     throw new createHttpError.BadRequest("description is required and must be a string");
-  }
-  if (!dto.careDate || !(dto.careDate instanceof Date)) {
+  if (!dto.careDate || !(dto.careDate instanceof Date))
     throw new createHttpError.BadRequest("careDate is required and must be a Date");
-  }
 };
 
 const validateAddTagInput = (dto: AddTagDTO) => {
-  if (!dto.tagId || typeof dto.tagId !== "string") {
+  if (!dto.tagId || typeof dto.tagId !== "string")
     throw new createHttpError.BadRequest("tagId is required and must be a string");
-  }
 };
 
 const validateAddVaccineInput = (dto: AddVaccineDTO) => {
-  if (!dto.vaccineId || typeof dto.vaccineId !== "string") {
+  if (!dto.vaccineId || typeof dto.vaccineId !== "string")
     throw new createHttpError.BadRequest("vaccineId is required and must be a string");
-  }
 };
 
 const validateMedicalCareResponse = (dto: MedicalCareResponseDTO) => {
@@ -199,5 +212,21 @@ const validateMedicalCareResponse = (dto: MedicalCareResponseDTO) => {
 
   dto.vaccines.forEach((v) => {
     if (!v.id || typeof v.id !== "string") throw new createHttpError.InternalServerError("Vaccine id is invalid");
+    if (!(v.administrationDate instanceof Date))
+      throw new createHttpError.InternalServerError("Vaccine administrationDate is invalid");
+    if (v.expirationDate !== undefined && !(v.expirationDate instanceof Date))
+      throw new createHttpError.InternalServerError("Vaccine expirationDate is invalid");
+    if (v.batchNumber !== undefined && typeof v.batchNumber !== "string")
+      throw new createHttpError.InternalServerError("Vaccine batchNumber is invalid");
+    if (v.doseNumber !== undefined && typeof v.doseNumber !== "number")
+      throw new createHttpError.InternalServerError("Vaccine doseNumber is invalid");
+    if (v.notes !== undefined && typeof v.notes !== "string")
+      throw new createHttpError.InternalServerError("Vaccine notes is invalid");
+    if (v.vaccineType) {
+      if (!v.vaccineType.id || typeof v.vaccineType.id !== "string")
+        throw new createHttpError.InternalServerError("VaccineType id is invalid");
+      if (!v.vaccineType.name || typeof v.vaccineType.name !== "string")
+        throw new createHttpError.InternalServerError("VaccineType name is invalid");
+    }
   });
 };
