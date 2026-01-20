@@ -1,41 +1,91 @@
+import { randomUUID } from "crypto";
+import bcrypt from "bcrypt";
 import { User } from "../models/User.model";
 import { UserRepository } from "../repositories/user.repository";
-import bcrypt from "bcrypt";
 
-export class UserService {
-    constructor(private readonly userRepository: UserRepository) { }
+export interface UserService {
+    getById(id: string): Promise<UserResponseDTO | null>;
+    getAll(): Promise<UserResponseDTO[]>;
+    create(dto: CreateUserDTO): Promise<UserResponseDTO>;
+    update(dto: UpdateUserDTO): Promise<UserResponseDTO>;
+    delete(id: string): Promise<void>;
+}
 
-    async getUserById(id: string): Promise<User | null> {
-        return this.userRepository.getById(id);
-    }
+export const UserServiceImpl = (
+    userRepository: UserRepository
+): UserService => ({
+    async getById(id: string): Promise<UserResponseDTO | null> {
+        const user = await userRepository.getById(id);
+        return user ? toUserResponseDTO(user) : null;
+    },
 
-    async getUserByEmail(email: string): Promise<User | null> {
-        return this.userRepository.getByEmail(email);
-    }
+    async getAll(): Promise<UserResponseDTO[]> {
+        const users = await userRepository.getAll();
+        return users.map(toUserResponseDTO);
+    },
 
-    async createUser(email: string, password: string, roleId: string): Promise<User> {
+    async create(dto: CreateUserDTO): Promise<UserResponseDTO> {
+        const hashedPassword = await bcrypt.hash(dto.password, 10);
 
-        // Vérifier si l'email existe déjà
-        const existing = await this.userRepository.getByEmail(email);
-
-        if (existing) {
-            throw new Error("Email already in use");
-        }
-
-        // Hasher le mot de passe
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        // Créer l'entité métier User
         const user = new User({
-            id: crypto.randomUUID(),
-            email,
+            id: randomUUID(),
+            email: dto.email,
             password: hashedPassword,
-            roleId,
+            roleId: dto.roleId,
             createdAt: new Date(),
             isDeleted: false,
         });
 
-        // Sauvegarder via le repository
-        return this.userRepository.create(user);
-    }
+        const savedUser = await userRepository.create(user);
+        return toUserResponseDTO(savedUser);
+    },
+
+    async update(dto: UpdateUserDTO): Promise<UserResponseDTO> {
+        const existing = await userRepository.getById(dto.id);
+        if (!existing) throw new Error("User not found");
+
+        const updatedUser = new User({
+            id: existing.id,
+            email: dto.email ?? existing.email,
+            password: dto.password
+                ? await bcrypt.hash(dto.password, 10)
+                : existing.password,
+            roleId: dto.roleId ?? existing.roleId,
+            createdAt: existing.createdAt,
+            updatedAt: new Date(),
+            isDeleted: existing.deleted,
+        });
+
+        const saved = await userRepository.update(updatedUser);
+        return toUserResponseDTO(saved);
+    },
+
+    async delete(id: string): Promise<void> {
+        await userRepository.delete(id);
+    },
+});
+
+export interface CreateUserDTO {
+    email: string;
+    password: string;
+    roleId: string;
 }
+
+export interface UpdateUserDTO {
+    id: string;
+    email?: string;
+    password?: string;
+    roleId?: string;
+}
+
+export interface UserResponseDTO {
+    id: string;
+    email: string;
+    roleId: string;
+}
+
+const toUserResponseDTO = (user: User): UserResponseDTO => ({
+    id: user.id,
+    email: user.email,
+    roleId: user.roleId,
+});
