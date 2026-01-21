@@ -4,7 +4,7 @@ export class Veterinarian extends AuditedBaseEntity {
   readonly firstName: string;
   readonly lastName: string;
   readonly email: string;
-  readonly phone: string;
+  readonly phone: number;
   readonly licenseNumber: string;
 
   constructor(props: {
@@ -12,7 +12,7 @@ export class Veterinarian extends AuditedBaseEntity {
     firstName: string;
     lastName: string;
     email: string;
-    phone: string;
+    phone: number;
     licenseNumber: string;
     createdAt: Date;
     updatedAt?: Date;
