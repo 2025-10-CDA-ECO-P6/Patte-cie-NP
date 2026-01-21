@@ -1,5 +1,5 @@
 import { AuditedBaseEntity } from "../../../core/bases/BaseModel";
-import { Veterinarian } from "../../../core/models/veterinarian.model";
+import { Veterinarian } from "../../common/models/veterinarian.model";
 import { HealthRecord } from "./HealthRecord.model";
 import { MedicalCareTag } from "./MedicalCareTag";
 import { MedicalCareVaccine } from "./MedicalCareVaccine.model";
@@ -9,7 +9,6 @@ import { Vaccine } from "./Vaccine.model";
 export class MedicalCare extends AuditedBaseEntity {
   private _healthRecordId!: string;
   private _veterinarianId!: string;
-  private _type!: string;
   private _description!: string;
   private _careDate!: Date;
 
@@ -23,7 +22,6 @@ export class MedicalCare extends AuditedBaseEntity {
     id: string;
     healthRecordId: string;
     veterinarianId: string;
-    type: string;
     description: string;
     careDate: Date;
     createdAt: Date;
@@ -38,7 +36,6 @@ export class MedicalCare extends AuditedBaseEntity {
 
     this.setHealthRecordId(props.healthRecordId);
     this.setVeterinarianId(props.veterinarianId);
-    this.setType(props.type);
     this.setDescription(props.description);
     this.setCareDate(props.careDate);
 
@@ -55,10 +52,6 @@ export class MedicalCare extends AuditedBaseEntity {
 
   get veterinarianId(): string {
     return this._veterinarianId;
-  }
-
-  get type(): string {
-    return this._type;
   }
 
   get description(): string {
@@ -93,11 +86,6 @@ export class MedicalCare extends AuditedBaseEntity {
   setVeterinarianId(id: string): void {
     if (!id) throw new Error("VeterinarianId is required");
     this._veterinarianId = id;
-  }
-
-  setType(type: string): void {
-    if (!type) throw new Error("MedicalCare type is required");
-    this._type = type;
   }
 
   setDescription(description: string): void {

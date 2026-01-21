@@ -50,6 +50,7 @@ model Owner {
 
   // Relation
   animalOwners AnimalOwner[]
+  userProfiles UserProfile?
 }
 
 model AnimalOwner {
@@ -70,36 +71,43 @@ model AnimalOwner {
   isDeleted Boolean   @default(false)
 
   // Relation
-
   animal Animal @relation(fields: [animalId], references: [id])
   owner  Owner  @relation(fields: [ownerId], references: [id])
 }
 
 model Veterinarian {
+  // PK
   id            String @id @default(uuid())
+
+  // Columns
   firstName     String
   lastName      String
   email         String @unique
-  phone         String @unique
+  phone         Int @unique
   licenseNumber String @unique
 
   // Audite
-
   createdAt DateTime  @default(now())
   updatedAt DateTime?
   isDeleted Boolean   @default(false)
 
   // Relation
   medicalCares MedicalCare[]
+  userProfiles UserProfile?
 }
 
+// -----AUTH-----
+
+
 model User {
+  // PK
   id       String @id @default(uuid())
+
+  // Columns
   email    String @unique
   password String
 
   // FK
-
   roleId String
 
   // Audite
@@ -111,14 +119,35 @@ model User {
   // relation
   role          Role           @relation(fields: [roleId], references: [id])
   refreshTokens RefreshToken[]
+  profile UserProfile?
+}
+
+model UserProfile {
+  id String @id @default(uuid())
+
+  // FK Auth
+  userId String @unique
+
+  // FK Common (optionnelles mais exclusives)
+  ownerId        String? @unique
+  veterinarianId String? @unique
+
+  createdAt DateTime @default(now())
+
+  // Relations (auth → common OK)
+  user         User         @relation(fields: [userId], references: [id])
+  owner        Owner?       @relation(fields: [ownerId], references: [id])
+  veterinarian Veterinarian? @relation(fields: [veterinarianId], references: [id])
 }
 
 model Role {
+  // PK
   id       String @id @default(uuid())
+
+  // Columns
   roleName String @unique
 
   // Audite
-
   createdAt DateTime  @default(now())
   updatedAt DateTime?
   isDeleted Boolean   @default(false)
@@ -128,12 +157,17 @@ model Role {
 }
 
 model RefreshToken {
+  // PK
   id        String   @id @default(uuid())
+
+  // Columns
   token     String   @unique
   expiresAt DateTime
 
   // FK
   userId String
+
+  // relation
   user   User   @relation(fields: [userId], references: [id])
 
   // Audit
@@ -168,14 +202,12 @@ model MedicalCare {
   id String @id @default(uuid())
 
   // Columns
-  type        String
   description String
   careDate    DateTime
 
   // FK
   healthRecordId String
   veterinarianId String
-  vaccineId      String?
 
   // Audit 
   createdAt DateTime  @default(now())
@@ -247,7 +279,11 @@ model Vaccine {
   id String @id @default(uuid())
 
   // Columns
-  name String
+  batchNumber String?
+  doseNumber Int?
+  administrationDate DateTime
+  expirationDate DateTime
+  notes String?
 
   //FK
   vaccineTypeId String
@@ -268,6 +304,8 @@ model VaccineType {
 
   // Columns
   name String @unique
+  defaultValidityDays Int
+  notes String?
 
   // Audit
   createdAt DateTime  @default(now())

@@ -1,5 +1,5 @@
 import { Owner } from "../models/Owner.model";
-import { PrismaClient, Owner as PrismaOwner } from "../../../generated/prisma/client";
+import { PrismaClient, Owner as PrismaOwner } from "../../../../generated/prisma/client";
 
 export interface OwnerRepository {
   getById(id: string): Promise<Owner | null>;

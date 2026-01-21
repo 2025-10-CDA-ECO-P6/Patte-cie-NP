@@ -53,7 +53,6 @@ export const MedicalCareMapper = {
       id: record.id,
       healthRecordId: record.healthRecordId,
       veterinarianId: record.veterinarianId,
-      type: record.type,
       description: record.description,
       careDate: record.careDate,
       createdAt: record.createdAt,
@@ -77,7 +76,7 @@ export const MedicalCareMapper = {
                   isDeleted: mt.tag.isDeleted,
                 })
               : undefined,
-          })
+          }),
       ),
       vaccines: record.vaccines?.map(
         (mv: any) =>
@@ -92,7 +91,11 @@ export const MedicalCareMapper = {
               ? new Vaccine({
                   id: mv.vaccine.id,
                   vaccineTypeId: mv.vaccine.vaccineTypeId,
-                  name: mv.vaccine.name,
+                  administrationDate: mv.vaccine.administrationDate,
+                  expirationDate: mv.vaccine.expirationDate,
+                  batchNumber: mv.vaccine.batchNumber,
+                  doseNumber: mv.vaccine.doseNumber,
+                  notes: mv.vaccine.notes,
                   createdAt: mv.vaccine.createdAt,
                   updatedAt: mv.vaccine.updatedAt ?? undefined,
                   isDeleted: mv.vaccine.isDeleted,
@@ -100,6 +103,8 @@ export const MedicalCareMapper = {
                     ? new VaccineType({
                         id: mv.vaccine.vaccineType.id,
                         name: mv.vaccine.vaccineType.name,
+                        defaultValidityDays: mv.vaccine.vaccineType.defaultValidityDays,
+                        notes: mv.vaccine.vaccineType.notes,
                         createdAt: mv.vaccine.vaccineType.createdAt,
                         updatedAt: mv.vaccine.vaccineType.updatedAt ?? undefined,
                         isDeleted: mv.vaccine.vaccineType.isDeleted,
@@ -107,7 +112,7 @@ export const MedicalCareMapper = {
                     : undefined,
                 })
               : undefined,
-          })
+          }),
       ),
     });
   },
@@ -117,7 +122,6 @@ export const MedicalCareMapper = {
       id: entity.id,
       healthRecordId: entity.healthRecordId,
       veterinarianId: entity.veterinarianId,
-      type: entity.type,
       description: entity.description,
       careDate: entity.careDate,
       createdAt: entity.createdAt,
@@ -149,7 +153,6 @@ export const MedicalCareMapper = {
       }));
 
     return {
-      type: entity.type,
       description: entity.description,
       careDate: entity.careDate,
       updatedAt: new Date(),

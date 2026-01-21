@@ -1,4 +1,4 @@
-import { AuditedBaseEntity } from "../bases/BaseModel";
+import { AuditedBaseEntity } from "../../../core/bases/BaseModel";
 
 export class AnimalOwner extends AuditedBaseEntity {
   readonly animalId: string;

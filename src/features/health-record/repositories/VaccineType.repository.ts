@@ -19,7 +19,7 @@ export const VaccineTypeRepositoryImpl = (prisma: PrismaClient): VaccineTypeRepo
     async getByName(name: string, withRelations = false): Promise<VaccineType | null> {
       const record = await prisma.vaccineType.findFirst({
         where: { name, isDeleted: false },
-        include: withRelations ? {} : undefined,
+        include: withRelations ? {} : undefined, // ici tu peux ajouter relations si besoin
       });
 
       return record ? VaccineTypeMapper.toDomain(record) : null;
@@ -32,6 +32,8 @@ export const VaccineTypeMapper = {
     return new VaccineType({
       id: record.id,
       name: record.name,
+      defaultValidityDays: record.defaultValidityDays,
+      notes: record.notes,
       createdAt: record.createdAt,
       updatedAt: record.updatedAt ?? undefined,
       isDeleted: record.isDeleted,
@@ -42,6 +44,8 @@ export const VaccineTypeMapper = {
     return {
       id: entity.id,
       name: entity.name,
+      defaultValidityDays: entity.defaultValidityDays,
+      notes: entity.notes,
       createdAt: entity.createdAt,
       isDeleted: entity.deleted,
     };
@@ -50,6 +54,8 @@ export const VaccineTypeMapper = {
   toUpdate(entity: VaccineType) {
     return {
       name: entity.name,
+      defaultValidityDays: entity.defaultValidityDays,
+      notes: entity.notes,
       updatedAt: new Date(),
       isDeleted: entity.deleted,
     };
