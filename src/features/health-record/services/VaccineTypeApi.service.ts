@@ -3,8 +3,12 @@ import { BaseApiService, BaseApiServiceImpl } from "../../../core/bases/BaseApiS
 import { VaccineType } from "../models/VaccinType.model";
 import { VaccineTypeRepository } from "../repositories/VaccineType.repository";
 
-export interface VaccineTypeService
-  extends BaseApiService<VaccineType, VaccineTypeCreateDTO, VaccineTypeUpdateDTO, VaccineTypeResponseDTO> {
+export interface VaccineTypeService extends BaseApiService<
+  VaccineType,
+  VaccineTypeCreateDTO,
+  VaccineTypeUpdateDTO,
+  VaccineTypeResponseDTO
+> {
   getByName(name: string): Promise<VaccineTypeResponseDTO | null>;
 }
 
@@ -13,6 +17,8 @@ export const VaccineTypeServiceImpl = (repository: VaccineTypeRepository): Vacci
     const dto: VaccineTypeResponseDTO = {
       id: v.id,
       name: v.name,
+      defaultValidityDays: v.defaultValidityDays,
+      notes: v.notes,
     };
     validateVaccineTypeResponse(dto);
     return dto;
@@ -23,6 +29,8 @@ export const VaccineTypeServiceImpl = (repository: VaccineTypeRepository): Vacci
     return new VaccineType({
       id: crypto.randomUUID(),
       name: dto.name,
+      defaultValidityDays: dto.defaultValidityDays,
+      notes: dto.notes,
       createdAt: new Date(),
       isDeleted: false,
     });
@@ -30,7 +38,11 @@ export const VaccineTypeServiceImpl = (repository: VaccineTypeRepository): Vacci
 
   const updateDomain = (existing: VaccineType, dto: VaccineTypeUpdateDTO): VaccineType => {
     validateVaccineTypeInput(dto);
-    existing.updateName(dto.name);
+    existing.update({
+      name: dto.name,
+      defaultValidityDays: dto.defaultValidityDays,
+      notes: dto.notes,
+    });
     return existing;
   };
 
@@ -62,10 +74,14 @@ export const VaccineTypeServiceImpl = (repository: VaccineTypeRepository): Vacci
 export interface VaccineTypeResponseDTO {
   id: string;
   name: string;
+  defaultValidityDays?: number;
+  notes?: string;
 }
 
 export interface VaccineTypeCreateDTO {
   name: string;
+  defaultValidityDays?: number;
+  notes?: string;
 }
 
 export interface VaccineTypeUpdateDTO extends VaccineTypeCreateDTO {
@@ -75,6 +91,15 @@ export interface VaccineTypeUpdateDTO extends VaccineTypeCreateDTO {
 const validateVaccineTypeInput = (dto: VaccineTypeCreateDTO | VaccineTypeUpdateDTO) => {
   if (!dto.name || typeof dto.name !== "string") {
     throw new createHttpError.BadRequest("VaccineType name is required and must be a string");
+  }
+  if (
+    dto.defaultValidityDays !== undefined &&
+    (typeof dto.defaultValidityDays !== "number" || dto.defaultValidityDays <= 0)
+  ) {
+    throw new createHttpError.BadRequest("defaultValidityDays must be a positive number if provided");
+  }
+  if (dto.notes !== undefined && typeof dto.notes !== "string") {
+    throw new createHttpError.BadRequest("notes must be a string if provided");
   }
 };
 

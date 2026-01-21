@@ -3,8 +3,12 @@ import { BaseApiService, BaseApiServiceImpl } from "../../../core/bases/BaseApiS
 import { Vaccine } from "../models/Vaccine.model";
 import { VaccineRepository } from "../repositories/Vaccine.repository";
 
-export interface VaccineService
-  extends BaseApiService<Vaccine, VaccineCreateDTO, VaccineUpdateDTO, VaccineResponseDTO> {
+export interface VaccineService extends BaseApiService<
+  Vaccine,
+  VaccineCreateDTO,
+  VaccineUpdateDTO,
+  VaccineResponseDTO
+> {
   getByVaccineTypeId(vaccineTypeId: string): Promise<VaccineResponseDTO[]>;
 }
 
@@ -13,8 +17,19 @@ export const VaccineServiceImpl = (repository: VaccineRepository): VaccineServic
     const dto: VaccineResponseDTO = {
       id: vaccine.id,
       vaccineTypeId: vaccine.vaccineTypeId,
-      name: vaccine.name,
-      vaccineType: vaccine.vaccineType ? { id: vaccine.vaccineType.id, name: vaccine.vaccineType.name } : undefined,
+      administrationDate: vaccine.administrationDate,
+      expirationDate: vaccine.expirationDate,
+      batchNumber: vaccine.batchNumber,
+      doseNumber: vaccine.doseNumber,
+      notes: vaccine.notes,
+      vaccineType: vaccine.vaccineType
+        ? {
+            id: vaccine.vaccineType.id,
+            name: vaccine.vaccineType.name,
+            defaultValidityDays: vaccine.vaccineType.defaultValidityDays,
+            notes: vaccine.vaccineType.notes,
+          }
+        : undefined,
     };
     validateVaccineResponse(dto);
     return dto;
@@ -25,7 +40,11 @@ export const VaccineServiceImpl = (repository: VaccineRepository): VaccineServic
     return new Vaccine({
       id: crypto.randomUUID(),
       vaccineTypeId: dto.vaccineTypeId,
-      name: dto.name,
+      administrationDate: dto.administrationDate,
+      expirationDate: dto.expirationDate,
+      batchNumber: dto.batchNumber,
+      doseNumber: dto.doseNumber,
+      notes: dto.notes,
       createdAt: new Date(),
       isDeleted: false,
     });
@@ -33,7 +52,14 @@ export const VaccineServiceImpl = (repository: VaccineRepository): VaccineServic
 
   const updateDomain = (existing: Vaccine, dto: VaccineUpdateDTO): Vaccine => {
     validateVaccineInput(dto);
-    existing.update(dto.name, dto.vaccineTypeId);
+    existing.update({
+      vaccineTypeId: dto.vaccineTypeId,
+      administrationDate: dto.administrationDate,
+      expirationDate: dto.expirationDate,
+      batchNumber: dto.batchNumber,
+      doseNumber: dto.doseNumber,
+      notes: dto.notes,
+    });
     return existing;
   };
 
@@ -43,7 +69,7 @@ export const VaccineServiceImpl = (repository: VaccineRepository): VaccineServic
     createDomain,
     updateDomain,
     validateVaccineInput,
-    validateVaccineResponse
+    validateVaccineResponse,
   );
 
   return {
@@ -67,13 +93,26 @@ export const VaccineServiceImpl = (repository: VaccineRepository): VaccineServic
 export interface VaccineResponseDTO {
   id: string;
   vaccineTypeId: string;
-  name: string;
-  vaccineType?: { id: string; name: string };
+  administrationDate: Date;
+  expirationDate?: Date;
+  batchNumber?: string;
+  doseNumber?: number;
+  notes?: string;
+  vaccineType?: {
+    id: string;
+    name: string;
+    defaultValidityDays?: number;
+    notes?: string;
+  };
 }
 
 export interface VaccineCreateDTO {
   vaccineTypeId: string;
-  name: string;
+  administrationDate: Date;
+  expirationDate?: Date;
+  batchNumber?: string;
+  doseNumber?: number;
+  notes?: string;
 }
 
 export interface VaccineUpdateDTO extends VaccineCreateDTO {
@@ -84,8 +123,20 @@ const validateVaccineInput = (dto: VaccineCreateDTO | VaccineUpdateDTO) => {
   if (!dto.vaccineTypeId || typeof dto.vaccineTypeId !== "string") {
     throw new createHttpError.BadRequest("vaccineTypeId is required and must be a string");
   }
-  if (!dto.name || typeof dto.name !== "string") {
-    throw new createHttpError.BadRequest("name is required and must be a string");
+  if (!(dto.administrationDate instanceof Date)) {
+    throw new createHttpError.BadRequest("administrationDate must be a valid Date");
+  }
+  if (dto.expirationDate !== undefined && !(dto.expirationDate instanceof Date)) {
+    throw new createHttpError.BadRequest("expirationDate must be a valid Date if provided");
+  }
+  if (dto.batchNumber !== undefined && typeof dto.batchNumber !== "string") {
+    throw new createHttpError.BadRequest("batchNumber must be a string if provided");
+  }
+  if (dto.doseNumber !== undefined && typeof dto.doseNumber !== "number") {
+    throw new createHttpError.BadRequest("doseNumber must be a number if provided");
+  }
+  if (dto.notes !== undefined && typeof dto.notes !== "string") {
+    throw new createHttpError.BadRequest("notes must be a string if provided");
   }
 };
 
@@ -93,12 +144,8 @@ const validateVaccineResponse = (dto: VaccineResponseDTO) => {
   if (!dto.id || typeof dto.id !== "string") throw new createHttpError.InternalServerError("Response id is invalid");
   if (!dto.vaccineTypeId || typeof dto.vaccineTypeId !== "string")
     throw new createHttpError.InternalServerError("Response vaccineTypeId is invalid");
-  if (!dto.name || typeof dto.name !== "string")
-    throw new createHttpError.InternalServerError("Response name is invalid");
-  if (dto.vaccineType) {
-    if (!dto.vaccineType.id || typeof dto.vaccineType.id !== "string")
-      throw new createHttpError.InternalServerError("Response vaccineType id is invalid");
-    if (!dto.vaccineType.name || typeof dto.vaccineType.name !== "string")
-      throw new createHttpError.InternalServerError("Response vaccineType name is invalid");
-  }
+  if (!(dto.administrationDate instanceof Date))
+    throw new createHttpError.InternalServerError("Response administrationDate is invalid");
+  if (dto.expirationDate !== undefined && !(dto.expirationDate instanceof Date))
+    throw new createHttpError.InternalServerError("Response expirationDate is invalid");
 };

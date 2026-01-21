@@ -94,7 +94,7 @@ export const HealthRecordMapper = {
                         isDeleted: mt.tag.isDeleted,
                       })
                     : undefined,
-                })
+                }),
             ),
             vaccines: mc.vaccines?.map(
               (mv: any) =>
@@ -109,7 +109,11 @@ export const HealthRecordMapper = {
                     ? new Vaccine({
                         id: mv.vaccine.id,
                         vaccineTypeId: mv.vaccine.vaccineTypeId,
-                        name: mv.vaccine.name,
+                        administrationDate: mv.vaccine.administrationDate,
+                        expirationDate: mv.vaccine.expirationDate,
+                        batchNumber: mv.vaccine.batchNumber,
+                        doseNumber: mv.vaccine.doseNumber,
+                        notes: mv.vaccine.notes,
                         createdAt: mv.vaccine.createdAt,
                         updatedAt: mv.vaccine.updatedAt ?? undefined,
                         isDeleted: mv.vaccine.isDeleted,
@@ -117,6 +121,8 @@ export const HealthRecordMapper = {
                           ? new VaccineType({
                               id: mv.vaccine.vaccineType.id,
                               name: mv.vaccine.vaccineType.name,
+                              defaultValidityDays: mv.vaccine.vaccineType.defaultValidityDays,
+                              notes: mv.vaccine.vaccineType.notes,
                               createdAt: mv.vaccine.vaccineType.createdAt,
                               updatedAt: mv.vaccine.vaccineType.updatedAt ?? undefined,
                               isDeleted: mv.vaccine.vaccineType.isDeleted,
@@ -124,9 +130,9 @@ export const HealthRecordMapper = {
                           : undefined,
                       })
                     : undefined,
-                })
+                }),
             ),
-          })
+          }),
       ),
     });
   },
