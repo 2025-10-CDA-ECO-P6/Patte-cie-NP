@@ -13,6 +13,23 @@ datasource db {
   provider = "postgresql"
 }
 
+model Species {
+  // PK
+  id String @id @default(uuid())
+
+  // Columns
+  name        String @unique 
+  description String?
+
+  // Audite
+  createdAt DateTime  @default(now())
+  updatedAt DateTime?
+  isDeleted Boolean   @default(false)
+         
+  // Relation
+  animals Animal[]             
+}
+
 model Animal {
   // PK
   id String @id @default(uuid())
@@ -20,16 +37,22 @@ model Animal {
   // Columns
   name           String
   birthDate      DateTime
-  identification Int?     @unique
+  identification Int? @unique
+  photoUrl       String?        
+
+  // FK
+  speciesId String
+ 
 
   // Audite
   createdAt DateTime  @default(now())
   updatedAt DateTime?
   isDeleted Boolean   @default(false)
 
-  // Relation
+  // Relations
   animalOwners AnimalOwner[]
   healthRecord HealthRecord?
+  species   Species @relation(fields: [speciesId], references: [id])
 }
 
 model Owner {
