@@ -16,7 +16,6 @@ router.post("/", healthRecordController.create);
 router.put("/:id", healthRecordController.update);
 router.delete("/:id", healthRecordController.delete);
 
-router.get("/animal/:animalId", healthRecordController.getByAnimalId);
 router.post("/:healthRecordId/medical-cares", healthRecordController.addMedicalCare);
 router.delete("/:healthRecordId/medical-cares/:medicalCareId", healthRecordController.removeMedicalCare);
 

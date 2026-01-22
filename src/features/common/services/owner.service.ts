@@ -1,71 +1,75 @@
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 import { Owner } from "../models/Owner.model";
-import { AnimalOwnerRepository } from "../repositories/animal-owner.repository";
 import { OwnerRepository } from "../repositories/owner.repository";
+import createHttpError from "http-errors";
+import { BaseApiService, BaseApiServiceImpl } from "../../../core/bases/BaseApiService";
 
-export interface OwnerService {
-  getById(id: string): Promise<OwnerResponseDTO | null>;
-  getAll(): Promise<OwnerResponseDTO[]>;
-  create(dto: CreateOwnerDTO): Promise<OwnerResponseDTO>;
-  update(dto: UpdateOwnerDTO): Promise<OwnerResponseDTO>;
-  delete(id: string): Promise<void>;
-}
+export interface OwnerService extends BaseApiService<Owner, CreateOwnerDTO, UpdateOwnerDTO, OwnerResponseDTO> {}
+
 export const OwnerServiceImpl = (
-  ownerRepository: OwnerRepository,
-  animalOwnerRepository: AnimalOwnerRepository
-): OwnerService => ({
-  async getById(id: string): Promise<OwnerResponseDTO | null> {
-    const owner = await ownerRepository.getById(id);
-    return owner ? toOwnerResponseDTO(owner) : null;
-  },
+  ownerRepository: OwnerRepository
+): OwnerService => {
+  const toResponseDTO = (owner: Owner): OwnerResponseDTO => ({
+    id: owner.id,
+    firstName: owner.firstName,
+    lastName: owner.lastName,
+    email: owner.email,
+    address: owner.address,
+    phoneNumber: owner.phoneNumber,
+  });
 
-  async getAll(): Promise<OwnerResponseDTO[]> {
-    const owners = await ownerRepository.getAll();
-    return owners.map(toOwnerResponseDTO);
-  },
+  const createDomain = (dto: CreateOwnerDTO): Owner => {
+    validateOwnerInput(dto);
 
-  async create(dto: CreateOwnerDTO): Promise<OwnerResponseDTO> {
-    const owner = new Owner({
+    return new Owner({
       id: randomUUID(),
-      ...dto,
+      firstName: dto.firstName,
+      lastName: dto.lastName,
+      email: dto.email,
+      address: dto.address,
+      phoneNumber: dto.phoneNumber,
       createdAt: new Date(),
       isDeleted: false,
     });
+  };
 
-    const savedOwner = await ownerRepository.create(owner);
-    return toOwnerResponseDTO(savedOwner);
-  },
+  const updateDomain = (existing: Owner, dto: UpdateOwnerDTO): Owner => {
+    validateOwnerInput(dto, true);
 
-  async update(dto: UpdateOwnerDTO): Promise<OwnerResponseDTO> {
-    const existing = await ownerRepository.getById(dto.id);
-    if (!existing) throw new Error("Owner not found");
-
-    const updatedOwner = new Owner({
-      id: existing.id,
-      firstName: dto.firstName ?? existing.firstName,
-      lastName: dto.lastName ?? existing.lastName,
-      email: dto.email ?? existing.email,
-      adresse: dto.adresse ?? existing.adresse,
-      phoneNumber: dto.phoneNumber ?? existing.phoneNumber,
-      createdAt: existing.createdAt,
-      updatedAt: new Date(),
-      isDeleted: existing.deleted,
+    existing.update({
+      firstName: dto.firstName,
+      lastName: dto.lastName,
+      email: dto.email,
+      address: dto.address,
+      phoneNumber: dto.phoneNumber,
     });
 
-    const saved = await ownerRepository.update(updatedOwner);
-    return toOwnerResponseDTO(saved);
-  },
+    return existing;
+  };
 
-  async delete(id: string): Promise<void> {
-    await ownerRepository.delete(id);
-  },
-});
+  const baseService = BaseApiServiceImpl(
+    ownerRepository,
+    toResponseDTO,
+    createDomain,
+    updateDomain,
+    validateOwnerInput,
+    (dto: OwnerResponseDTO) => {
+      if (!dto.id || !dto.firstName || !dto.lastName || !dto.email) {
+        throw new createHttpError.InternalServerError("Invalid owner response");
+      }
+    },
+  );
+
+  return {
+    ...baseService,
+  };
+};
 
 export interface CreateOwnerDTO {
   firstName: string;
   lastName: string;
   email: string;
-  adresse: string;
+  address: string;
   phoneNumber: number;
 }
 
@@ -74,7 +78,7 @@ export interface UpdateOwnerDTO {
   firstName?: string;
   lastName?: string;
   email?: string;
-  adresse?: string;
+  address?: string;
   phoneNumber?: number;
 }
 
@@ -83,15 +87,27 @@ export interface OwnerResponseDTO {
   firstName: string;
   lastName: string;
   email: string;
-  adresse: string;
+  address: string;
   phoneNumber: number;
 }
 
-const toOwnerResponseDTO = (owner: Owner): OwnerResponseDTO => ({
-  id: owner.id,
-  firstName: owner.firstName,
-  lastName: owner.lastName,
-  email: owner.email,
-  adresse: owner.adresse,
-  phoneNumber: owner.phoneNumber,
-});
+const validateOwnerInput = (dto: CreateOwnerDTO | UpdateOwnerDTO, partial = false) => {
+  if (!partial || dto.firstName !== undefined) {
+    if (!dto.firstName || typeof dto.firstName !== "string")
+      throw new createHttpError.BadRequest("firstName is required");
+  }
+  if (!partial || dto.lastName !== undefined) {
+    if (!dto.lastName || typeof dto.lastName !== "string") throw new createHttpError.BadRequest("lastName is required");
+  }
+  if (!partial || dto.email !== undefined) {
+    if (!dto.email || typeof dto.email !== "string" || !/\S+@\S+\.\S+/.test(dto.email))
+      throw new createHttpError.BadRequest("email is required and must be valid");
+  }
+  if (!partial || dto.address !== undefined) {
+    if (!dto.address || typeof dto.address !== "string") throw new createHttpError.BadRequest("address is required");
+  }
+  if (!partial || dto.phoneNumber !== undefined) {
+    if (dto.phoneNumber === undefined || typeof dto.phoneNumber !== "number")
+      throw new createHttpError.BadRequest("phoneNumber is required and must be a number");
+  }
+};

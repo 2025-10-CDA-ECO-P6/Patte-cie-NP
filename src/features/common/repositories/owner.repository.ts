@@ -1,85 +1,116 @@
 import { Owner } from "../models/Owner.model";
-import { PrismaClient, Owner as PrismaOwner } from "../../../../generated/prisma/client";
+import { PrismaClient } from "../../../../generated/prisma/client";
+import { BasePrismaRepository, BaseRepository } from "../../../core/bases/BaseRepository";
+import { AnimalMapper } from "./animal.repository";
 
-export interface OwnerRepository {
-  getById(id: string): Promise<Owner | null>;
-  getAll(): Promise<Owner[]>;
-  create(data: Owner): Promise<Owner>;
-  update(data: Owner): Promise<Owner>;
-  delete(id: string): Promise<void>;
+export interface OwnerRepository extends BaseRepository<Owner> {
+  getByEmail(email: string, withRelations?: boolean): Promise<Owner | null>;
 }
 
-export const OwnerRepositoryImpl = (prisma: PrismaClient): OwnerRepository => ({
-  async getById(id: string): Promise<Owner | null> {
-    const record = await prisma.owner.findUnique({
-      where: { id, isDeleted: false },
-    });
-
-    return record ? toDomainOwner(record) : null;
-  },
-
-  async getAll(): Promise<Owner[]> {
-    const records = await prisma.owner.findMany({
+export const OwnerRepositoryImpl = (prisma: PrismaClient): OwnerRepository => {
+  const defaultInclude = {
+    animalOwners: {
       where: { isDeleted: false },
-    });
+      include: { animal: { include: { species: true } } },
+    },
+  };
 
-    return records.map(toDomainOwner);
-  },
-
-  async create(owner: Owner): Promise<Owner> {
-    const record = await prisma.owner.create({
-      data: {
-        id: owner.id,
-        firstName: owner.firstName,
-        lastName: owner.lastName,
-        email: owner.email,
-        adresse: owner.adresse,
-        phoneNumber: owner.phoneNumber,
-        createdAt: owner.createdAt,
-        isDeleted: owner.deleted,
-      },
-    });
-
-    return toDomainOwner(record);
-  },
-
-  async update(owner: Owner): Promise<Owner> {
-    const record = await prisma.owner.update({
-      where: { id: owner.id },
-      data: {
-        firstName: owner.firstName,
-        lastName: owner.lastName,
-        email: owner.email,
-        adresse: owner.adresse,
-        phoneNumber: owner.phoneNumber,
-        updatedAt: new Date(),
-        isDeleted: owner.deleted,
-      },
-    });
-
-    return toDomainOwner(record);
-  },
-
-  async delete(id: string): Promise<void> {
-    await prisma.owner.update({
-      where: { id },
-      data: {
-        isDeleted: true,
-        updatedAt: new Date(),
-      },
-    });
-  },
-});
-
-const toDomainOwner = (record: PrismaOwner): Owner =>
-  new Owner({
-    id: record.id,
-    firstName: record.firstName,
-    lastName: record.lastName,
-    email: record.email,
-    adresse: record.adresse,
-    phoneNumber: record.phoneNumber,
-    createdAt: record.createdAt,
-    updatedAt: record.updatedAt ?? undefined,
-    isDeleted: record.isDeleted,
+  const base = BasePrismaRepository<Owner, PrismaOwnerCreate, PrismaOwnerUpdate>({
+    prisma,
+    modelName: "owner",
+    mapper: OwnerMapper,
+    defaultInclude,
   });
+
+  return {
+    ...base,
+
+    async getByEmail(email: string, withRelations = false): Promise<Owner | null> {
+      const record = await prisma.owner.findFirst({
+        where: { email, isDeleted: false },
+        include: withRelations ? defaultInclude : undefined,
+      });
+      return record ? OwnerMapper.toDomain(record) : null;
+    },
+  };
+};
+
+export const OwnerMapper = {
+  toDomain(record: any): Owner {
+    const animalOwners =
+      record.animalOwners?.map((ao: any) => {
+        const animal = ao.animal ? AnimalMapper.toDomain(ao.animal) : undefined;
+        return { ...ao, animal };
+      }) ?? [];
+
+    return new Owner({
+      id: record.id,
+      firstName: record.firstName,
+      lastName: record.lastName,
+      email: record.email,
+      address: record.adresse, // Prisma field name
+      phoneNumber: record.phoneNumber,
+      animalOwners,
+      createdAt: record.createdAt,
+      updatedAt: record.updatedAt ?? undefined,
+      isDeleted: record.isDeleted,
+    });
+  },
+
+  toCreate(entity: Owner) {
+    return {
+      id: entity.id,
+      firstName: entity.firstName,
+      lastName: entity.lastName,
+      email: entity.email,
+      address: entity.address,
+      phoneNumber: entity.phoneNumber,
+      createdAt: entity.createdAt,
+      isDeleted: entity.deleted,
+      animalOwners: {
+        create: entity.animalOwners.map((ao) => ({
+          id: ao.id,
+          animalId: ao.animalId,
+          startDate: ao.startDate,
+          isDeleted: ao.deleted,
+          createdAt: ao.createdAt,
+        })),
+      },
+    };
+  },
+
+  toUpdate(entity: Owner) {
+    const createRelations = entity.animalOwners
+      .filter((ao) => !ao.id)
+      .map((ao) => ({
+        id: ao.id,
+        animalId: ao.animalId,
+        startDate: ao.startDate,
+        isDeleted: ao.deleted,
+        createdAt: ao.createdAt,
+      }));
+
+    const updateRelations = entity.animalOwners
+      .filter((ao) => ao.id)
+      .map((ao) => ({
+        where: { id: ao.id },
+        data: { isDeleted: ao.deleted },
+      }));
+
+    return {
+      firstName: entity.firstName,
+      lastName: entity.lastName,
+      email: entity.email,
+      address: entity.address,
+      phoneNumber: entity.phoneNumber,
+      updatedAt: new Date(),
+      isDeleted: entity.deleted,
+      animalOwners: {
+        create: createRelations,
+        updateMany: updateRelations,
+      },
+    };
+  },
+};
+type PrismaOwnerCreate = ReturnType<typeof OwnerMapper.toCreate>;
+type PrismaOwnerUpdate = ReturnType<typeof OwnerMapper.toUpdate>;

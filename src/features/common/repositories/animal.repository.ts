@@ -1,79 +1,115 @@
-import { PrismaClient, Animal as PrismaAnimal } from "../../../../generated/prisma/client";
+import { Prisma, PrismaClient } from "../../../../generated/prisma/client";
+import { BasePrismaRepository, BaseRepository } from "../../../core/bases/BaseRepository";
 import { Animal } from "../models/Animal.model";
+import { Weight } from "../models/value-object/Weight";
+import { OwnerMapper } from "./owner.repository";
+import { SpeciesMapper } from "./species.repository";
 
-export interface AnimalRepository {
-  getById(id: string): Promise<Animal | null>;
-  getAll(): Promise<Animal[]>;
-  create(animal: Animal): Promise<Animal>;
-  update(animal: Animal): Promise<Animal>;
-  delete(id: string): Promise<void>;
-}
+export interface AnimalRepository extends BaseRepository<Animal> {}
 
-export const AnimalRepositoryImpl = (prisma: PrismaClient): AnimalRepository => ({
-  async getById(id: string): Promise<Animal | null> {
-    const record = await prisma.animal.findUnique({
-      where: { id, isDeleted: false },
-    });
-
-    return record ? toDomainAnimal(record) : null;
-  },
-
-  async getAll(): Promise<Animal[]> {
-    const records = await prisma.animal.findMany({
+export const AnimalRepositoryImpl = (prisma: PrismaClient): AnimalRepository => {
+  const defaultInclude = {
+    species: true,
+    animalOwners: {
       where: { isDeleted: false },
-    });
+      include: { owner: true },
+    },
+  };
 
-    return records.map(toDomainAnimal);
-  },
-
-  async create(animal: Animal): Promise<Animal> {
-    const record = await prisma.animal.create({
-      data: {
-        id: animal.id,
-        name: animal.name,
-        birthDate: animal.birthDate,
-        identification: animal.identification,
-        createdAt: animal.createdAt,
-        isDeleted: animal.deleted,
-      },
-    });
-
-    return toDomainAnimal(record);
-  },
-
-  async update(animal: Animal): Promise<Animal> {
-    const record = await prisma.animal.update({
-      where: { id: animal.id },
-      data: {
-        name: animal.name,
-        birthDate: animal.birthDate,
-        identification: animal.identification,
-        updatedAt: new Date(),
-        isDeleted: animal.deleted,
-      },
-    });
-
-    return toDomainAnimal(record);
-  },
-
-  async delete(id: string): Promise<void> {
-    await prisma.animal.update({
-      where: { id },
-      data: {
-        isDeleted: true,
-        updatedAt: new Date(),
-      },
-    });
-  },
-});
-
-const toDomainAnimal = (record: PrismaAnimal): Animal =>
-  new Animal({
-    id: record.id,
-    name: record.name,
-    birthDate: record.birthDate,
-    identification: record.identification ?? undefined,
-    createdAt: record.createdAt,
-    updatedAt: record.updatedAt ?? undefined,
-    isDeleted: record.isDeleted,
+  const base = BasePrismaRepository<Animal, PrismaAnimalCreate, PrismaAnimalUpdate>({
+    prisma,
+    modelName: "animal",
+    mapper: AnimalMapper,
+    defaultInclude,
   });
+
+  return {
+    ...base,
+  };
+};
+
+export const AnimalMapper = {
+  toDomain(record: any): Animal {
+    const species = record.species ? SpeciesMapper.toDomain(record.species) : undefined;
+
+    const owners =
+      record.animalOwners?.map((ao: any) => ({
+        ...ao,
+        owner: ao.owner ? OwnerMapper.toDomain(ao.owner) : undefined,
+      })) ?? [];
+
+    return new Animal({
+      id: record.id,
+      speciesId: record.speciesId,
+      name: record.name,
+      birthDate: record.birthDate,
+      weight: record.weight ? Weight.create(record.weight.toNumber()) : undefined,
+      identification: record.identification ?? undefined,
+      photoUrl: record.photoUrl ?? undefined,
+      species,
+      owners,
+      createdAt: record.createdAt,
+      updatedAt: record.updatedAt ?? undefined,
+      isDeleted: record.isDeleted,
+    });
+  },
+
+  toCreate(entity: Animal) {
+    return {
+      id: entity.id,
+      name: entity.name,
+      birthDate: entity.birthDate,
+      weight: entity.weight ? new Prisma.Decimal(entity.weight.getValue()) : null,
+      identification: entity.identification,
+      photoUrl: entity.photoUrl,
+      speciesId: entity.speciesId,
+      createdAt: entity.createdAt,
+      isDeleted: entity.deleted,
+      animalOwners: {
+        create: entity.owners.map((o) => ({
+          id: o.id,
+          ownerId: o.ownerId,
+          startDate: o.startDate,
+          isDeleted: o.deleted,
+          createdAt: o.createdAt,
+        })),
+      },
+    };
+  },
+
+  toUpdate(entity: Animal) {
+    const createOwners = entity.owners
+      .filter((o) => !o.id)
+      .map((o) => ({
+        ownerId: o.ownerId,
+        startDate: o.startDate,
+        isDeleted: o.deleted,
+        createdAt: o.createdAt,
+      }));
+
+    const updateOwners = entity.owners
+      .filter((o) => o.id)
+      .map((o) => ({
+        where: { id: o.id },
+        data: { isDeleted: o.deleted, endDate: o.endDate, updatedAt: new Date() },
+      }));
+
+    return {
+      name: entity.name,
+      birthDate: entity.birthDate,
+      weight: entity.weight ? new Prisma.Decimal(entity.weight.getValue()) : null,
+      identification: entity.identification,
+      photoUrl: entity.photoUrl,
+      speciesId: entity.speciesId,
+      updatedAt: new Date(),
+      isDeleted: entity.deleted,
+      animalOwners: {
+        create: createOwners,
+        updateMany: updateOwners,
+      },
+    };
+  },
+};
+
+type PrismaAnimalCreate = ReturnType<typeof AnimalMapper.toCreate>;
+type PrismaAnimalUpdate = ReturnType<typeof AnimalMapper.toUpdate>;
