@@ -36,6 +36,7 @@ model Animal {
 
   // Columns
   name           String
+  weight Decimal? @db.Decimal(5, 2)
   birthDate      DateTime
   identification Int?     @unique
   photoUrl       String?

@@ -1,6 +1,7 @@
-import { PrismaClient } from "../../../../generated/prisma/client";
+import { Prisma, PrismaClient } from "../../../../generated/prisma/client";
 import { BasePrismaRepository, BaseRepository } from "../../../core/bases/BaseRepository";
 import { Animal } from "../models/Animal.model";
+import { Weight } from "../models/value-object/Weight";
 import { OwnerMapper } from "./owner.repository";
 import { SpeciesMapper } from "./species.repository";
 
@@ -42,6 +43,7 @@ export const AnimalMapper = {
       speciesId: record.speciesId,
       name: record.name,
       birthDate: record.birthDate,
+      weight: record.weight ? Weight.create(record.weight.toNumber()) : undefined,
       identification: record.identification ?? undefined,
       photoUrl: record.photoUrl ?? undefined,
       species,
@@ -57,6 +59,7 @@ export const AnimalMapper = {
       id: entity.id,
       name: entity.name,
       birthDate: entity.birthDate,
+      weight: entity.weight ? new Prisma.Decimal(entity.weight.getValue()) : null,
       identification: entity.identification,
       photoUrl: entity.photoUrl,
       speciesId: entity.speciesId,
@@ -94,6 +97,7 @@ export const AnimalMapper = {
     return {
       name: entity.name,
       birthDate: entity.birthDate,
+      weight: entity.weight ? new Prisma.Decimal(entity.weight.getValue()) : null,
       identification: entity.identification,
       photoUrl: entity.photoUrl,
       speciesId: entity.speciesId,

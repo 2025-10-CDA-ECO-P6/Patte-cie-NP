@@ -2,11 +2,13 @@ import { AuditedBaseEntity } from "../../../core/bases/BaseModel";
 import { AnimalOwner } from "./AnimalOwner.model";
 import { Owner } from "./Owner.model";
 import { Species } from "./Species.model";
+import { Weight } from "./value-object/Weight";
 
 export class Animal extends AuditedBaseEntity {
   private _speciesId!: string;
   private _name!: string;
   private _birthDate!: Date;
+  private _weight?: Weight;
   private _identification?: number;
   private _photoUrl?: string;
   private _species?: Species;
@@ -17,6 +19,7 @@ export class Animal extends AuditedBaseEntity {
     speciesId: string;
     name: string;
     birthDate: Date;
+    weight?: Weight;
     identification?: number;
     photoUrl?: string;
     species?: Species;
@@ -35,6 +38,7 @@ export class Animal extends AuditedBaseEntity {
 
     if (props.species) this._species = props.species;
     if (props.owners) this._owners = props.owners;
+    if (props.weight) this.setWeight(props.weight);
   }
 
   get name(): string {
@@ -59,6 +63,10 @@ export class Animal extends AuditedBaseEntity {
 
   get speciesId(): string {
     return this._speciesId;
+  }
+
+  get weight(): Weight | undefined {
+    return this._weight;
   }
 
   get owners(): readonly AnimalOwner[] {
@@ -88,6 +96,10 @@ export class Animal extends AuditedBaseEntity {
     this._photoUrl = url?.trim();
   }
 
+  setWeight(weight?: Weight) {
+    this._weight = weight;
+  }
+
   setSpeciesId(speciesId: string) {
     if (!speciesId.trim()) throw new Error("speciesId is required");
     this._speciesId = speciesId;
@@ -97,9 +109,17 @@ export class Animal extends AuditedBaseEntity {
     if (!this._owners.some((o) => o.id === owner.id)) this._owners.push(owner);
   }
 
-  update(props: { name?: string; birthDate?: Date; identification?: number; photoUrl?: string; speciesId?: string }) {
+  update(props: {
+    name?: string;
+    birthDate?: Date;
+    weight?: Weight;
+    identification?: number;
+    photoUrl?: string;
+    speciesId?: string;
+  }) {
     if (props.name !== undefined) this.setName(props.name);
     if (props.birthDate !== undefined) this.setBirthDate(props.birthDate);
+    if (props.weight !== undefined) this.setWeight(props.weight);
     if (props.identification !== undefined) this.setIdentification(props.identification);
     if (props.photoUrl !== undefined) this.setPhotoUrl(props.photoUrl);
     if (props.speciesId !== undefined) this.setSpeciesId(props.speciesId);
