@@ -1,87 +1,66 @@
-import { PrismaClient, Veterinarian as PrismaVeterinarian } from "../../../../generated/prisma/client";
+import { PrismaClient } from "../../../../generated/prisma/client";
+import { BasePrismaRepository, BaseRepository } from "../../../core/bases/BaseRepository";
 import { Veterinarian } from "../models/veterinarian.model";
 
-export interface VeterinarianRepository {
-    getById(id: string): Promise<Veterinarian | null>;
-    getAll(): Promise<Veterinarian[]>;
-    create(veterinarian: Veterinarian): Promise<Veterinarian>;
-    update(veterinarian: Veterinarian): Promise<Veterinarian>;
-    delete(id: string): Promise<void>;
-}
+export interface VeterinarianRepository extends BaseRepository<Veterinarian> {}
 
-export const VeterinarianRepositoryImpl = (
-    prisma: PrismaClient
-): VeterinarianRepository => ({
-    async getById(id: string): Promise<Veterinarian | null> {
-        const record = await prisma.veterinarian.findUnique({
-            where: { id, isDeleted: false },
-        });
+export const VeterinarianRepositoryImpl = (prisma: PrismaClient): VeterinarianRepository => {
+  const defaultInclude = {
+    medicalCares: { where: { isDeleted: false }, include: { tags: true, vaccines: true } },
+  };
 
-        return record ? toDomainVeterinarian(record) : null;
-    },
+  const base = BasePrismaRepository<Veterinarian, PrismaVeterinarianCreate, PrismaVeterinarianUpdate>({
+    prisma,
+    modelName: "veterinarian",
+    mapper: VeterinarianMapper,
+    defaultInclude,
+  });
 
-    async getAll(): Promise<Veterinarian[]> {
-        const records = await prisma.veterinarian.findMany({
-            where: { isDeleted: false },
-        });
+  return {
+    ...base,
+  };
+};
 
-        return records.map(toDomainVeterinarian);
-    },
-
-    async create(veterinarian: Veterinarian): Promise<Veterinarian> {
-        const record = await prisma.veterinarian.create({
-            data: {
-                id: veterinarian.id,
-                firstName: veterinarian.firstName,
-                lastName: veterinarian.lastName,
-                email: veterinarian.email,
-                phone: veterinarian.phone,
-                licenseNumber: veterinarian.licenseNumber,
-                createdAt: veterinarian.createdAt,
-                isDeleted: veterinarian.deleted,
-            },
-        });
-
-        return toDomainVeterinarian(record);
-    },
-
-    async update(veterinarian: Veterinarian): Promise<Veterinarian> {
-        const record = await prisma.veterinarian.update({
-            where: { id: veterinarian.id },
-            data: {
-                firstName: veterinarian.firstName,
-                lastName: veterinarian.lastName,
-                email: veterinarian.email,
-                phone: veterinarian.phone,
-                licenseNumber: veterinarian.licenseNumber,
-                updatedAt: new Date(),
-                isDeleted: veterinarian.deleted,
-            },
-        });
-
-        return toDomainVeterinarian(record);
-    },
-
-    async delete(id: string): Promise<void> {
-        await prisma.veterinarian.update({
-            where: { id },
-            data: {
-                isDeleted: true,
-                updatedAt: new Date(),
-            },
-        });
-    },
-});
-
-const toDomainVeterinarian = (record: PrismaVeterinarian): Veterinarian =>
-    new Veterinarian({
-        id: record.id,
-        firstName: record.firstName,
-        lastName: record.lastName,
-        email: record.email,
-        phone: record.phone,
-        licenseNumber: record.licenseNumber,
-        createdAt: record.createdAt,
-        updatedAt: record.updatedAt ?? undefined,
-        isDeleted: record.isDeleted
+export const VeterinarianMapper = {
+  toDomain(record: any): Veterinarian {
+    return new Veterinarian({
+      id: record.id,
+      firstName: record.firstName,
+      lastName: record.lastName,
+      email: record.email,
+      phone: record.phone,
+      licenseNumber: record.licenseNumber,
+      createdAt: record.createdAt,
+      updatedAt: record.updatedAt ?? undefined,
+      isDeleted: record.isDeleted,
     });
+  },
+
+  toCreate(entity: Veterinarian) {
+    return {
+      id: entity.id,
+      firstName: entity.firstName,
+      lastName: entity.lastName,
+      email: entity.email,
+      phone: entity.phone,
+      licenseNumber: entity.licenseNumber,
+      createdAt: entity.createdAt,
+      isDeleted: entity.deleted,
+    };
+  },
+
+  toUpdate(entity: Veterinarian) {
+    return {
+      firstName: entity.firstName,
+      lastName: entity.lastName,
+      email: entity.email,
+      phone: entity.phone,
+      licenseNumber: entity.licenseNumber,
+      updatedAt: new Date(),
+      isDeleted: entity.deleted,
+    };
+  },
+};
+
+type PrismaVeterinarianCreate = ReturnType<typeof VeterinarianMapper.toCreate>;
+type PrismaVeterinarianUpdate = ReturnType<typeof VeterinarianMapper.toUpdate>;
