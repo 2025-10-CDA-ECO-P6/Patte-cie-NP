@@ -18,16 +18,16 @@ model Species {
   id String @id @default(uuid())
 
   // Columns
-  name        String @unique 
+  name        String  @unique
   description String?
 
   // Audite
   createdAt DateTime  @default(now())
   updatedAt DateTime?
   isDeleted Boolean   @default(false)
-         
+
   // Relation
-  animals Animal[]             
+  animals Animal[]
 }
 
 model Animal {
@@ -37,12 +37,11 @@ model Animal {
   // Columns
   name           String
   birthDate      DateTime
-  identification Int? @unique
-  photoUrl       String?        
+  identification Int?     @unique
+  photoUrl       String?
 
   // FK
   speciesId String
- 
 
   // Audite
   createdAt DateTime  @default(now())
@@ -52,7 +51,7 @@ model Animal {
   // Relations
   animalOwners AnimalOwner[]
   healthRecord HealthRecord?
-  species   Species @relation(fields: [speciesId], references: [id])
+  species      Species       @relation(fields: [speciesId], references: [id])
 }
 
 model Owner {
@@ -100,13 +99,13 @@ model AnimalOwner {
 
 model Veterinarian {
   // PK
-  id            String @id @default(uuid())
+  id String @id @default(uuid())
 
   // Columns
   firstName     String
   lastName      String
   email         String @unique
-  phone         Int @unique
+  phone         Int    @unique
   licenseNumber String @unique
 
   // Audite
@@ -121,10 +120,9 @@ model Veterinarian {
 
 // -----AUTH-----
 
-
 model User {
   // PK
-  id       String @id @default(uuid())
+  id String @id @default(uuid())
 
   // Columns
   email    String @unique
@@ -142,7 +140,7 @@ model User {
   // relation
   role          Role           @relation(fields: [roleId], references: [id])
   refreshTokens RefreshToken[]
-  profile UserProfile?
+  profile       UserProfile?
 }
 
 model UserProfile {
@@ -158,14 +156,14 @@ model UserProfile {
   createdAt DateTime @default(now())
 
   // Relations (auth → common OK)
-  user         User         @relation(fields: [userId], references: [id])
-  owner        Owner?       @relation(fields: [ownerId], references: [id])
+  user         User          @relation(fields: [userId], references: [id])
+  owner        Owner?        @relation(fields: [ownerId], references: [id])
   veterinarian Veterinarian? @relation(fields: [veterinarianId], references: [id])
 }
 
 model Role {
   // PK
-  id       String @id @default(uuid())
+  id String @id @default(uuid())
 
   // Columns
   roleName String @unique
@@ -181,7 +179,7 @@ model Role {
 
 model RefreshToken {
   // PK
-  id        String   @id @default(uuid())
+  id String @id @default(uuid())
 
   // Columns
   token     String   @unique
@@ -191,7 +189,7 @@ model RefreshToken {
   userId String
 
   // relation
-  user   User   @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id])
 
   // Audit
   createdAt DateTime @default(now())
@@ -302,11 +300,11 @@ model Vaccine {
   id String @id @default(uuid())
 
   // Columns
-  batchNumber String?
-  doseNumber Int?
+  batchNumber        String?
+  doseNumber         Int?
   administrationDate DateTime
-  expirationDate DateTime
-  notes String?
+  expirationDate     DateTime
+  notes              String?
 
   //FK
   vaccineTypeId String
@@ -326,9 +324,9 @@ model VaccineType {
   id String @id @default(uuid())
 
   // Columns
-  name String @unique
+  name                String  @unique
   defaultValidityDays Int
-  notes String?
+  notes               String?
 
   // Audit
   createdAt DateTime  @default(now())
