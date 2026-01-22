@@ -10,28 +10,30 @@ import {
 import { asyncHandler } from "../../../core/utils/asyncHandler";
 
 export interface HealthRecordController extends BaseController {
-  getByAnimalId(req: Request, res: Response, next: NextFunction): Promise<void>;
   addMedicalCare(req: Request, res: Response, next: NextFunction): Promise<void>;
   removeMedicalCare(req: Request, res: Response, next: NextFunction): Promise<void>;
 }
 
 export const HealthRecordControllerImpl = (service: HealthRecordService): HealthRecordController => {
   const baseController = BaseControllerImpl<HealthRecordCreateDTO, HealthRecordUpdateDTO, HealthRecordResponseDTO>(
-    service
+    service,
   );
 
   return {
     ...baseController,
 
-    getByAnimalId: asyncHandler(async (req: Request, res: Response) => {
-      const result = await service.getByAnimalId(req.params.animalId);
+    getAll: asyncHandler(async (req: Request, res: Response) => {
+      const { animalId } = req.query;
 
-      if (!result) {
-        res.sendStatus(404);
-        return;
+      let records;
+
+      if (animalId) {
+        records = await service.getByAnimalId(String(animalId));
+      } else {
+        records = await service.getAll();
       }
 
-      res.json(result);
+      res.json(records);
     }),
 
     addMedicalCare: asyncHandler(async (req: Request, res: Response) => {

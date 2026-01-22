@@ -2,178 +2,308 @@ import bcrypt from "bcrypt";
 import { prisma } from "../lib/prisma";
 
 async function main() {
-    console.log(" Seeding database");
+  await seedReferenceData();
+  await seedPeople();
+  await seedAnimals();
+  await seedAnimalOwners();
+  await seedHealthRecordsAndMedicalCares();
+  await seedUsers();
+}
+import { randomItem } from "../src/core/utils/randomItem";
 
-    const adminRole = await prisma.role.create({
-        data: { roleName: "ADMIN" },
-    });
+const MEDICAL_CARE_TYPES = [
+  {
+    description: "Consultation annuelle",
+    mandatoryTags: [],
+  },
+  {
+    description: "Vaccination",
+    mandatoryTags: ["Vaccin"],
+  },
+  {
+    description: "Contrôle post-opératoire",
+    mandatoryTags: ["Contrôle"],
+  },
+  {
+    description: "Bilan de santé",
+    mandatoryTags: [],
+  },
+] as const;
 
-    const userRole = await prisma.role.create({
-        data: { roleName: "USER" },
-    });
+async function seedReferenceData() {
+  const roles = ["ADMIN", "CLIENT", "VETERINARIAN"];
 
-    const dogSpecies = await prisma.species.create({
-        data: { name: "Chien", description: "Canidé domestique" },
-    });
+  await prisma.role.createMany({
+    data: roles.map((roleName) => ({ roleName })),
+    skipDuplicates: true,
+  });
 
-    const catSpecies = await prisma.species.create({
-        data: { name: "Chat", description: "Félin domestique" },
-    });
+  await prisma.species.createMany({
+    data: [
+      { name: "Chien", description: "Canidé domestique" },
+      { name: "Chat", description: "Félin domestique" },
+      { name: "Lapin", description: "Lagomorphe domestique" },
+    ],
+    skipDuplicates: true,
+  });
 
-    const vet = await prisma.veterinarian.create({
-        data: {
-            firstName: "Jean",
-            lastName: "Dupont",
-            email: "vet@pattecie.fr",
-            phone: 612345678,
-            licenseNumber: "VET-123456",
-        },
-    });
+  await prisma.tag.createMany({
+    data: [{ name: "Urgent" }, { name: "Contrôle" }, { name: "Vaccin" }, { name: "Chirurgie" }],
+    skipDuplicates: true,
+  });
 
-    const owner = await prisma.owner.create({
-        data: {
-            firstName: "Alice",
-            lastName: "Martin",
-            email: "alice@pattecie.fr",
-            adresse: "1 rue des Animaux, Paris",
-            phoneNumber: 698765432,
-        },
-    });
+  await prisma.vaccineType.createMany({
+    data: [
+      { name: "Rage", defaultValidityDays: 365 },
+      { name: "Parvovirose", defaultValidityDays: 365 },
+      { name: "Leucose", defaultValidityDays: 365 },
+    ],
+    skipDuplicates: true,
+  });
+}
 
-    const rex = await prisma.animal.create({
-        data: {
-            name: "Rex",
-            weight: 15.5,
-            birthDate: new Date("2020-05-10"),
-            identification: 123456,
-            speciesId: dogSpecies.id,
-        },
-    });
+async function seedPeople() {
+  const veterinarians = await prisma.veterinarian.createMany({
+    data: [
+      {
+        firstName: "Jean",
+        lastName: "Dupont",
+        email: "vet1@pattecie.fr",
+        phone: 612345678,
+        licenseNumber: "VET-001",
+      },
+      {
+        firstName: "Claire",
+        lastName: "Bernard",
+        email: "vet2@pattecie.fr",
+        phone: 612345679,
+        licenseNumber: "VET-002",
+      },
+    ],
+    skipDuplicates: true,
+  });
 
-    const mimi = await prisma.animal.create({
-        data: {
-            name: "Mimi",
-            weight: 5.5,
-            birthDate: new Date("2021-03-12"),
-            identification: 654321,
-            speciesId: catSpecies.id,
-        },
-    });
+  await prisma.owner.createMany({
+    data: [
+      {
+        firstName: "Alice",
+        lastName: "Martin",
+        email: "alice@pattecie.fr",
+        adresse: "1 rue des Animaux, Paris",
+        phoneNumber: 698765432,
+      },
+      {
+        firstName: "Paul",
+        lastName: "Durand",
+        email: "paul@pattecie.fr",
+        adresse: "10 avenue des Vétos, Lyon",
+        phoneNumber: 698765433,
+      },
+    ],
+    skipDuplicates: true,
+  });
+}
+
+async function seedAnimals() {
+  const dog = await prisma.species.findUnique({ where: { name: "Chien" } });
+  const cat = await prisma.species.findUnique({ where: { name: "Chat" } });
+
+  if (!dog || !cat) return;
+
+  const animalsData = [
+    {
+      name: "Rex",
+      weight: 15.5,
+      birthDate: new Date("2020-05-10"),
+      identification: 100001,
+      speciesId: dog.id,
+    },
+    {
+      name: "Bella",
+      weight: 18.2,
+      birthDate: new Date("2019-02-20"),
+      identification: 100002,
+      speciesId: dog.id,
+    },
+    {
+      name: "Mimi",
+      weight: 5.3,
+      birthDate: new Date("2021-03-12"),
+      identification: 200001,
+      speciesId: cat.id,
+    },
+    {
+      name: "Luna",
+      weight: 4.9,
+      birthDate: new Date("2022-07-01"),
+      identification: 200002,
+      speciesId: cat.id,
+    },
+  ];
+
+  const animalsWithPhoto = animalsData.map((animal) => {
+    const speciesName = animal.speciesId === dog.id ? "Chien" : "Chat";
+    return {
+      ...animal,
+      photoUrl: speciesName === "Chien" ? "images/animals/chien.png" : "images/animals/chat.png",
+    };
+  });
+
+  await prisma.animal.createMany({
+    data: animalsWithPhoto,
+    skipDuplicates: true,
+  });
+}
+
+async function seedAnimalOwners() {
+  const animals = await prisma.animal.findMany();
+  const owners = await prisma.owner.findMany();
+
+  for (const animal of animals) {
+    const owner = randomItem(owners);
 
     await prisma.animalOwner.create({
+      data: {
+        animalId: animal.id,
+        ownerId: owner.id,
+        startDate: new Date(Date.now() - Math.random() * 1000 * 60 * 60 * 24 * 365), // date aléatoire dans l'année passée
+      },
+    });
+  }
+}
+
+async function seedHealthRecordsAndMedicalCares() {
+  const animals = await prisma.animal.findMany();
+  const veterinarians = await prisma.veterinarian.findMany();
+  const tags = await prisma.tag.findMany();
+  const vaccineTypes = await prisma.vaccineType.findMany();
+
+  const resolveTagsForCare = (careDescription: string, allTags: { id: string; name: string }[]) => {
+    const careType = MEDICAL_CARE_TYPES.find((c) => c.description === careDescription);
+
+    const mandatoryTags = careType?.mandatoryTags.map((tagName) => allTags.find((t) => t.name === tagName)!) ?? [];
+
+    const optionalTags = allTags.filter((tag) => !mandatoryTags.some((m) => m.id === tag.id));
+
+    const randomOptional = optionalTags.sort(() => 0.5 - Math.random()).slice(0, 1);
+
+    return [...mandatoryTags, ...randomOptional];
+  };
+
+  for (const animal of animals) {
+    const healthRecord = await prisma.healthRecord.create({
+      data: {
+        description: `Dossier médical de ${animal.name}`,
+        recordDate: new Date(),
+        animalId: animal.id,
+      },
+    });
+
+    const numberOfCares = Math.floor(Math.random() * 4) + 3;
+
+    for (let i = 0; i < numberOfCares; i++) {
+      const careType = MEDICAL_CARE_TYPES[i % MEDICAL_CARE_TYPES.length];
+
+      const care = await prisma.medicalCare.create({
         data: {
-            animalId: rex.id,
-            ownerId: owner.id,
-            startDate: new Date("2020-06-01"),
+          description: careType.description,
+          careDate: new Date(Date.now() - Math.random() * 1000 * 60 * 60 * 24 * 365),
+          healthRecordId: healthRecord.id,
+          veterinarianId: randomItem(veterinarians).id,
         },
-    });
+      });
 
-    await prisma.animalOwner.create({
-        data: {
-            animalId: mimi.id,
-            ownerId: owner.id,
-            startDate: new Date("2021-04-01"),
-        },
-    });
+      const resolvedTags = resolveTagsForCare(care.description, tags);
 
-    const rexRecord = await prisma.healthRecord.create({
-        data: {
-            description: "Dossier médical de Rex",
-            recordDate: new Date(),
-            animalId: rex.id,
-        },
-    });
+      await prisma.medicalCareTag.createMany({
+        data: resolvedTags.map((tag) => ({
+          medicalCareId: care.id,
+          tagId: tag.id,
+        })),
+        skipDuplicates: true,
+      });
 
-    const urgentTag = await prisma.tag.create({
-        data: { name: "Urgent" },
-    });
+      if (care.description === "Vaccination") {
+        await createVaccineForMedicalCare(care.id, vaccineTypes);
+      }
+    }
+  }
+}
 
-    const controlTag = await prisma.tag.create({
-        data: { name: "Contrôle" },
-    });
+async function createVaccineForMedicalCare(medicalCareId: string, vaccineTypes: { id: string }[]) {
+  const vaccineType = randomItem(vaccineTypes);
 
-    const rabiesType = await prisma.vaccineType.create({
-        data: {
-            name: "Rage",
-            defaultValidityDays: 365,
-            notes: "Vaccin contre la rage",
-        },
-    });
+  const administrationDate = new Date();
+  const expirationDate = new Date(administrationDate);
+  expirationDate.setDate(expirationDate.getDate() + 365);
 
-    const vaccine = await prisma.vaccine.create({
-        data: {
-            batchNumber: "BATCH-001",
-            doseNumber: 1,
-            administrationDate: new Date("2024-01-10"),
-            expirationDate: new Date("2025-01-10"),
-            vaccineTypeId: rabiesType.id,
-        },
-    });
+  const vaccine = await prisma.vaccine.create({
+    data: {
+      batchNumber: `BATCH-${Math.floor(Math.random() * 10_000)}`,
+      doseNumber: 1,
+      administrationDate,
+      expirationDate,
+      vaccineTypeId: vaccineType.id,
+    },
+  });
 
-    const care = await prisma.medicalCare.create({
-        data: {
-            description: "Vaccination annuelle",
-            careDate: new Date(),
-            healthRecordId: rexRecord.id,
-            veterinarianId: vet.id,
-        },
-    });
+  await prisma.medicalCareVaccine.create({
+    data: {
+      medicalCareId,
+      vaccineId: vaccine.id,
+    },
+  });
+}
 
-    await prisma.medicalCareTag.create({
-        data: {
-            medicalCareId: care.id,
-            tagId: controlTag.id,
-        },
-    });
+async function seedUsers() {
+  const password = await bcrypt.hash("password123", 10);
 
-    await prisma.medicalCareVaccine.create({
-        data: {
-            medicalCareId: care.id,
-            vaccineId: vaccine.id,
-        },
-    });
+  const roles = await prisma.role.findMany();
+  const owners = await prisma.owner.findMany();
+  const vets = await prisma.veterinarian.findMany();
 
-    const adminPassword = await bcrypt.hash("admin123", 10);
-    const userPassword = await bcrypt.hash("user123", 10);
+  const adminRole = roles.find((r) => r.roleName === "ADMIN")!;
+  const clientRole = roles.find((r) => r.roleName === "CLIENT")!;
+  const vetRole = roles.find((r) => r.roleName === "VETERINARIAN")!;
 
-    const adminUser = await prisma.user.create({
-        data: {
-            email: "admin@pattecie.fr",
-            password: adminPassword,
-            roleId: adminRole.id,
-        },
-    });
+  const admin = await prisma.user.create({
+    data: {
+      email: "admin@pattecie.fr",
+      password,
+      roleId: adminRole.id,
+    },
+  });
 
-    const normalUser = await prisma.user.create({
-        data: {
-            email: "user@pattecie.fr",
-            password: userPassword,
-            roleId: userRole.id,
-        },
+  await prisma.userProfile.create({
+    data: {
+      userId: admin.id,
+      veterinarianId: vets[0].id,
+    },
+  });
+
+  for (const owner of owners) {
+    const user = await prisma.user.create({
+      data: {
+        email: owner.email,
+        password,
+        roleId: clientRole.id,
+      },
     });
 
     await prisma.userProfile.create({
-        data: {
-            userId: adminUser.id,
-            veterinarianId: vet.id,
-        },
+      data: {
+        userId: user.id,
+        ownerId: owner.id,
+      },
     });
-
-    await prisma.userProfile.create({
-        data: {
-            userId: normalUser.id,
-            ownerId: owner.id,
-        },
-    });
-
-    console.log("seed successful");
+  }
 }
 
 main()
-    .catch((e) => {
-        console.error("Seed error:", e);
-        process.exit(1);
-    })
-    .finally(async () => {
-        await prisma.$disconnect();
-    });
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });
