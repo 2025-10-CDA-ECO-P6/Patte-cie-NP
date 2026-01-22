@@ -43,6 +43,7 @@ async function main() {
     const rex = await prisma.animal.create({
         data: {
             name: "Rex",
+            weight: 15.5,
             birthDate: new Date("2020-05-10"),
             identification: 123456,
             speciesId: dogSpecies.id,
@@ -52,6 +53,7 @@ async function main() {
     const mimi = await prisma.animal.create({
         data: {
             name: "Mimi",
+            weight: 5.5,
             birthDate: new Date("2021-03-12"),
             identification: 654321,
             speciesId: catSpecies.id,
