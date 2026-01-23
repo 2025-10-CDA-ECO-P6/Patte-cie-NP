@@ -3,9 +3,13 @@ import { prisma } from "../../../../lib/prisma";
 import { VaccineControllerImpl } from "../controllers/Vaccine.controller";
 import { VaccineRepositoryImpl } from "../repositories/Vaccine.repository";
 import { VaccineServiceImpl } from "../services/VaccineApi.service";
+import { VaccineReminderRepositoryImpl } from "../repositories/VaccineReminder.repository";
+import { VaccineReminderServiceImpl } from "../services/VaccineReminderApi.service";
 
 const vaccineRepository = VaccineRepositoryImpl(prisma);
-const vaccineService = VaccineServiceImpl(vaccineRepository);
+const vaccineReminderRepository = VaccineReminderRepositoryImpl(prisma);
+const vaccineReminderService = VaccineReminderServiceImpl(vaccineReminderRepository);
+const vaccineService = VaccineServiceImpl(vaccineRepository, vaccineReminderService);
 const vaccineController = VaccineControllerImpl(vaccineService);
 
 const router = Router();
