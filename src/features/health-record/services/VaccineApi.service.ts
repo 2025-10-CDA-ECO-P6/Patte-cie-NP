@@ -2,6 +2,7 @@ import createHttpError from "http-errors";
 import { BaseApiService, BaseApiServiceImpl } from "../../../core/bases/BaseApiService";
 import { Vaccine } from "../models/Vaccine.model";
 import { VaccineRepository } from "../repositories/Vaccine.repository";
+import { VaccineReminderService } from "./VaccineReminderApi.service";
 
 export interface VaccineService extends BaseApiService<
   Vaccine,
@@ -12,7 +13,10 @@ export interface VaccineService extends BaseApiService<
   getByVaccineTypeId(vaccineTypeId: string): Promise<VaccineResponseDTO[]>;
 }
 
-export const VaccineServiceImpl = (repository: VaccineRepository): VaccineService => {
+export const VaccineServiceImpl = (
+  repository: VaccineRepository,
+  vaccineReminderService: VaccineReminderService
+): VaccineService => {
   const toResponseDTO = (vaccine: Vaccine): VaccineResponseDTO => {
     const dto: VaccineResponseDTO = {
       id: vaccine.id,
@@ -24,11 +28,11 @@ export const VaccineServiceImpl = (repository: VaccineRepository): VaccineServic
       notes: vaccine.notes,
       vaccineType: vaccine.vaccineType
         ? {
-            id: vaccine.vaccineType.id,
-            name: vaccine.vaccineType.name,
-            defaultValidityDays: vaccine.vaccineType.defaultValidityDays,
-            notes: vaccine.vaccineType.notes,
-          }
+          id: vaccine.vaccineType.id,
+          name: vaccine.vaccineType.name,
+          defaultValidityDays: vaccine.vaccineType.defaultValidityDays,
+          notes: vaccine.vaccineType.notes,
+        }
         : undefined,
     };
     validateVaccineResponse(dto);
@@ -63,7 +67,12 @@ export const VaccineServiceImpl = (repository: VaccineRepository): VaccineServic
     return existing;
   };
 
-  const baseService = BaseApiServiceImpl<Vaccine, VaccineCreateDTO, VaccineUpdateDTO, VaccineResponseDTO>(
+  const baseService = BaseApiServiceImpl<
+    Vaccine,
+    VaccineCreateDTO,
+    VaccineUpdateDTO,
+    VaccineResponseDTO
+  >(
     repository,
     toResponseDTO,
     createDomain,
@@ -72,8 +81,62 @@ export const VaccineServiceImpl = (repository: VaccineRepository): VaccineServic
     validateVaccineResponse,
   );
 
+  const createWithReminder = async (dto: VaccineCreateDTO) => {
+    const vaccine = await baseService.create(dto);
+
+    if (vaccine.expirationDate) {
+      const remindAt = new Date(vaccine.expirationDate);
+      remindAt.setDate(remindAt.getDate() - 7);
+
+      await vaccineReminderService.create({
+        vaccineId: vaccine.id,
+        remindAt,
+      });
+    }
+
+    return vaccine;
+  };
+
+  const updateWithReminder = async (dto: VaccineUpdateDTO) => {
+    const oldVaccine = await repository.getById(dto.id);
+    if (!oldVaccine) {
+      throw new createHttpError.NotFound("Vaccine not found");
+    }
+
+    const oldExpiration = oldVaccine.expirationDate;
+
+    const updatedVaccine = await baseService.update(dto);
+    const newExpiration = updatedVaccine.expirationDate;
+
+    if (!oldExpiration && newExpiration) {
+      const remindAt = new Date(newExpiration);
+      remindAt.setDate(remindAt.getDate() - 7);
+
+      await vaccineReminderService.create({
+        vaccineId: updatedVaccine.id,
+        remindAt,
+      });
+    }
+
+    if (oldExpiration && !newExpiration) {
+      await vaccineReminderService.deleteByVaccineId(updatedVaccine.id);
+    }
+
+    if (oldExpiration && newExpiration) {
+      const remindAt = new Date(newExpiration);
+      remindAt.setDate(remindAt.getDate() - 7);
+
+      await vaccineReminderService.updateByVaccineId(updatedVaccine.id, remindAt);
+    }
+
+    return updatedVaccine;
+  };
+
   return {
     ...baseService,
+
+    create: createWithReminder,
+    update: updateWithReminder,
 
     async getByVaccineTypeId(vaccineTypeId: string): Promise<VaccineResponseDTO[]> {
       if (!vaccineTypeId || typeof vaccineTypeId !== "string") {

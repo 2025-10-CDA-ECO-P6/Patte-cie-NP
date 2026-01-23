@@ -36,7 +36,7 @@ model Animal {
 
   // Columns
   name           String
-  weight Decimal? @db.Decimal(5, 2)
+  weight         Decimal? @db.Decimal(5, 2)
   birthDate      DateTime
   identification Int?     @unique
   photoUrl       String?
@@ -318,6 +318,7 @@ model Vaccine {
   // Relations
   vaccineType  VaccineType          @relation(fields: [vaccineTypeId], references: [id])
   medicalCares MedicalCareVaccine[]
+  reminder     VaccineReminder?
 }
 
 model VaccineType {
@@ -336,4 +337,20 @@ model VaccineType {
 
   // Relations
   vaccines Vaccine[]
+}
+
+model VaccineReminder {
+  id String @id @default(uuid())
+
+  vaccineId String @unique
+
+  remindAt DateTime
+  isSent   Boolean  @default(false)
+
+  createdAt DateTime @default(now())
+
+  vaccine Vaccine @relation(fields: [vaccineId], references: [id], onDelete: Cascade)
+
+  @@index([remindAt])
+  @@index([isSent])
 }
